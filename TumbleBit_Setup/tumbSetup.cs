@@ -129,7 +129,7 @@ namespace TumbleBit_Setup
         /// </summary>
         /// <param name="bound"> Bound to generate primes up to</param>
         /// <returns> Iterator over the list of primes</returns>
-        public static IEnumerable<int> Primes(int bound)
+        internal static IEnumerable<int> Primes(int bound)
         {
             // From here https://codereview.stackexchange.com/questions/56480/getting-all-primes-between-0-n
 
@@ -163,7 +163,7 @@ namespace TumbleBit_Setup
         /// <param name="alpha"> Prime number specified in the setup</param>
         /// <param name="N"> Modulus used in the public key used to sign the values</param>
         /// <returns>true if the check passes, false otherwise</returns>
-        public static bool checkAlphaN(int alpha, BigInteger N)
+        private static bool checkAlphaN(int alpha, BigInteger N)
         {
             IEnumerable<int> primesList = Primes(alpha - 1);
 
@@ -179,7 +179,7 @@ namespace TumbleBit_Setup
         /// </summary>
         /// <param name="data">Input to process</param>
         /// <returns>Hashed result as a 256 Bytes array (2048 Bits)</returns>
-        public static byte[] hashFuc(byte[] data)
+        internal static byte[] hashFuc(byte[] data)
         {
             byte[] output = new byte[256];
             Sha256Digest sha256 = new Sha256Digest();
@@ -196,7 +196,7 @@ namespace TumbleBit_Setup
         /// <param name="k">Security parameter specified in the setup</param>
         /// <param name="m1">Variable to store m1 in</param>
         /// <param name="m2">Variable to store m2 in</param>
-        public static void get_m1_m2(decimal alpha, int e, int k, out int m1, out int m2)
+        private static void get_m1_m2(decimal alpha, int e, int k, out int m1, out int m2)
         {
             double p1 = -(k + 1) / Math.Log(1.0 / ((double)alpha), 2.0);
             double p22 = 1.0 / ((double)alpha) + (1.0 / ((double)e)) * (1.0 - (1.0 / ((double)alpha)));
@@ -212,7 +212,7 @@ namespace TumbleBit_Setup
         /// <param name="pks">"public string" specified in the setup</param>
         /// <param name="pubKey">Public key used</param>
         /// <param name="rhoValues">List of the resulting rho values</param>
-        public static void getRhos(int m2, string pks, RsaKeyParameters pubKey, out byte[][] rhoValues)
+        private static void getRhos(int m2, string pks, RsaKeyParameters pubKey, out byte[][] rhoValues)
         {
             rhoValues = new byte[m2][];
             BigInteger Modulus = pubKey.Modulus;
@@ -248,7 +248,7 @@ namespace TumbleBit_Setup
         /// <param name="arr1">First array</param>
         /// <param name="arr2">Second array</param>
         /// <returns>The resultant combined list</returns>
-        public static byte[] Combine(byte[] arr1, byte[] arr2)
+        internal static byte[] Combine(byte[] arr1, byte[] arr2)
         {
             var len = arr1.Length + arr2.Length;
             var combined = new byte[len];
@@ -264,7 +264,7 @@ namespace TumbleBit_Setup
         /// <param name="privKey">Private key to use for Decryption</param>
         /// <param name="encrypted">Data to decrypt (or sign)</param>
         /// <returns></returns>
-        public static byte[] Decrypt(RsaPrivateCrtKeyParameters privKey, byte[] encrypted)
+        internal static byte[] Decrypt(RsaPrivateCrtKeyParameters privKey, byte[] encrypted)
         {
             if (encrypted == null)
                 throw new ArgumentNullException(nameof(encrypted));
@@ -280,7 +280,7 @@ namespace TumbleBit_Setup
         /// <param name="pubKey">Public key to use for Encryption</param>
         /// <param name="data">Data to encrypt</param>
         /// <returns></returns>
-        public static byte[] Encrypt(RsaKeyParameters pubKey, byte[] data)
+        internal static byte[] Encrypt(RsaKeyParameters pubKey, byte[] data)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
@@ -311,7 +311,7 @@ namespace TumbleBit_Setup
         /// <param name="q">Q</param>
         /// <param name="e">Public Exponent</param>
         /// <returns>RSA key pair</returns>
-        public static AsymmetricCipherKeyPair GeneratePrivate(BigInteger p, BigInteger q, BigInteger e)
+        internal static AsymmetricCipherKeyPair GeneratePrivate(BigInteger p, BigInteger q, BigInteger e)
         {
             BigInteger n, d, pSub1, qSub1, phi;
 
@@ -346,7 +346,7 @@ namespace TumbleBit_Setup
         /// </summary>
         /// <param name="pubKey"> Public key to convert</param>
         /// <returns>ByteArray representing the public key</returns>
-        public static byte[] pubKeyToBytes(RsaKeyParameters pubKey)
+        private static byte[] pubKeyToBytes(RsaKeyParameters pubKey)
         {
             RsaPublicKeyStructure keyStruct = new RsaPublicKeyStructure(
                 pubKey.Modulus,

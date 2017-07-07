@@ -21,11 +21,20 @@ namespace TumbleBit_Setup
         internal const int KeySize = 2048;
         internal static AlgorithmIdentifier algID = new AlgorithmIdentifier(
                     new DerObjectIdentifier("1.2.840.113549.1.1.1"), DerNull.Instance);
-
-        public static void proving(BigInteger p, BigInteger q, BigInteger e, int alpha, out byte[][] sigs, string pks = "public string", int k = 120)
+        /// <summary>
+        /// Generate a list of signatures as specified in "Proving" at Sec 2.8
+        /// </summary>
+        /// <param name="p">P in the secret key</param>
+        /// <param name="q">Q in the secret key</param>
+        /// <param name="e">Public Exponent in the public key</param>
+        /// <param name="alpha">Prime number specified in the setup</param>
+        /// <param name="k">Security parameter as specified in the setup.</param>
+        /// <param name="pks">The "public string" from the setup</param>
+        /// <returns>The resulting signatures</returns>
+        public static byte[][] proving(BigInteger p, BigInteger q, BigInteger e, int alpha, string pks = "public string", int k = 128)
         {
             int m1, m2;
-            byte[][] rhoValues;
+            byte[][] rhoValues, sigs;
 
             // Generate m1 and m2
             get_m1_m2((decimal)alpha, e.IntValue, k, out m1, out m2);
@@ -56,10 +65,19 @@ namespace TumbleBit_Setup
                 else
                     sigs[i] = Decrypt(privKey, rhoValues[i]);
             }
-            return;
+            return sigs;
         }
 
-        public static bool verifying(RsaKeyParameters pubKey, byte[][] sigs, int alpha, string pks = "public string", int k = 120)
+        /// <summary>
+        /// Verifies a list of signatures as specified in "Verifying" at Sec 2.8
+        /// </summary>
+        /// <param name="pubKey">Public Key used to verify the signatures</param>
+        /// <param name="sigs">List of signatures to verify</param>
+        /// <param name="alpha">Prime number specified in the setup</param>
+        /// <param name="k">Security parameter as specified in the setup.</param>
+        /// <param name="pks">The "public string" from the setup</param>
+        /// <returns> true if the signatures verify, false otherwise</returns>
+        public static bool verifying(RsaKeyParameters pubKey, byte[][] sigs, int alpha, string pks = "public string", int k = 128)
         {
             var Modulus = pubKey.Modulus;
             byte[][] rhoValues;
@@ -106,18 +124,11 @@ namespace TumbleBit_Setup
             return true;
         }
 
-        public static bool checkAlphaN(int alpha, BigInteger N)
-        {
-            int[] primesList = Primes(alpha - 1).ToArray();
-            int primeCount = primesList.Length;
-
-            for (int i = 0; i < primeCount; i++)
-            {
-                if (!N.Gcd(BigInteger.ValueOf(primesList[i])).Equals(BigInteger.One))
-                    return false;
-            }
-            return true;
-        }
+        /// <summary>
+        /// Generates a list of primes up to and including the input bound
+        /// </summary>
+        /// <param name="bound"> Bound to generate primes up to</param>
+        /// <returns> Iterator over the list of primes</returns>
         public static IEnumerable<int> Primes(int bound)
         {
             // From here https://codereview.stackexchange.com/questions/56480/getting-all-primes-between-0-n
@@ -146,6 +157,28 @@ namespace TumbleBit_Setup
                 if (!composite[i]) yield return 2 * i + 3;
             }
         }
+        /// <summary>
+        /// Provides the check specified in step 3 of the verifying protocol.
+        /// </summary>
+        /// <param name="alpha"> Prime number specified in the setup</param>
+        /// <param name="N"> Modulus used in the public key used to sign the values</param>
+        /// <returns>true if the check passes, false otherwise</returns>
+        public static bool checkAlphaN(int alpha, BigInteger N)
+        {
+            IEnumerable<int> primesList = Primes(alpha - 1);
+
+            foreach (int p in primesList)
+            {
+                if (!N.Gcd(BigInteger.ValueOf(p)).Equals(BigInteger.One))
+                    return false;
+            }
+            return true;
+        }
+        /// <summary>
+        /// MGF1 Mask Generation Function based on the SHA-256 hash function
+        /// </summary>
+        /// <param name="data">Input to process</param>
+        /// <returns>Hashed result as a 256 Bytes array (2048 Bits)</returns>
         public static byte[] hashFuc(byte[] data)
         {
             byte[] output = new byte[256];
@@ -155,7 +188,14 @@ namespace TumbleBit_Setup
             generator.GenerateBytes(output, 0, output.Length);
             return output;
         }
-
+        /// <summary>
+        /// Generates the values m1 and m2 as specified in the "proving" protocol in section 2.8
+        /// </summary>
+        /// <param name="alpha">Prime number specified in the setup</param>
+        /// <param name="e">Public Exponent used in the public key used to sign the rho values</param>
+        /// <param name="k">Security parameter specified in the setup</param>
+        /// <param name="m1">Variable to store m1 in</param>
+        /// <param name="m2">Variable to store m2 in</param>
         public static void get_m1_m2(decimal alpha, int e, int k, out int m1, out int m2)
         {
             double p1 = -(k + 1) / Math.Log(1.0 / ((double)alpha), 2.0);
@@ -165,7 +205,13 @@ namespace TumbleBit_Setup
             m2 = (int)Math.Ceiling(p2);
             return;
         }
-
+        /// <summary>
+        /// Generates a list of rho values as specified in the while-loop in the setup (section 2.8)
+        /// </summary>
+        /// <param name="m2">m2 as calculated</param>
+        /// <param name="pks">"public string" specified in the setup</param>
+        /// <param name="pubKey">Public key used</param>
+        /// <param name="rhoValues">List of the resulting rho values</param>
         public static void getRhos(int m2, string pks, RsaKeyParameters pubKey, out byte[][] rhoValues)
         {
             rhoValues = new byte[m2][];
@@ -175,11 +221,17 @@ namespace TumbleBit_Setup
                 int j = 0;
                 while (true)
                 {
-                    string s_key = Encoding.ASCII.GetString(pubKeyToBytes(pubKey));
-                    string s = s_key + pks + i.ToString() + j.ToString();
-                    byte[] sBytes = Encoding.UTF8.GetBytes(s);
-                    byte[] output = hashFuc(sBytes);
+                    // Byte representation of the PublicKey
+                    var keyBytes = pubKeyToBytes(pubKey);
+                    // Byte representation of ("public string||i||j")
+                    var sBytes = Encoding.UTF8.GetBytes(pks + i.ToString() + j.ToString());
+                    // Combine PK with the rest of the string
+                    var combined = Combine(keyBytes, sBytes);
+                    // Pass the bytes to H_1
+                    byte[] output = hashFuc(combined);
+                    // Convert from Bytes to BigInteger
                     BigInteger input = new BigInteger(1, output);
+                    // Check if the output is smaller than N
                     if (input.CompareTo(Modulus) >= 0)
                     {
                         j++;
@@ -190,7 +242,28 @@ namespace TumbleBit_Setup
                 }
             }
         }
+        /// <summary>
+        /// Combines two ByteArrays
+        /// </summary>
+        /// <param name="arr1">First array</param>
+        /// <param name="arr2">Second array</param>
+        /// <returns>The resultant combined list</returns>
+        public static byte[] Combine(byte[] arr1, byte[] arr2)
+        {
+            var len = arr1.Length + arr2.Length;
+            var combined = new byte[len];
 
+            System.Buffer.BlockCopy(arr1, 0, combined, 0, arr1.Length);
+            System.Buffer.BlockCopy(arr2, 0, combined, arr1.Length, arr2.Length);
+
+            return combined;
+        }
+        /// <summary>
+        /// Preforms RSA decryption (or signing) using private key.
+        /// </summary>
+        /// <param name="privKey">Private key to use for Decryption</param>
+        /// <param name="encrypted">Data to decrypt (or sign)</param>
+        /// <returns></returns>
         public static byte[] Decrypt(RsaPrivateCrtKeyParameters privKey, byte[] encrypted)
         {
             if (encrypted == null)
@@ -201,7 +274,12 @@ namespace TumbleBit_Setup
 
             return engine.ProcessBlock(encrypted, 0, encrypted.Length);
         }
-
+        /// <summary>
+        /// Preforms RSA encryption using public key.
+        /// </summary>
+        /// <param name="pubKey">Public key to use for Encryption</param>
+        /// <param name="data">Data to encrypt</param>
+        /// <returns></returns>
         public static byte[] Encrypt(RsaKeyParameters pubKey, byte[] data)
         {
             if (data == null)
@@ -212,7 +290,12 @@ namespace TumbleBit_Setup
 
             return engine.ProcessBlock(data, 0, data.Length);
         }
-
+        /// <summary>
+        /// Generates a new RSA key pair (public and private)
+        /// </summary>
+        /// <param name="Exp">Public exponent to use for generation</param>
+        /// <param name="keySize">The size of the key to generate</param>
+        /// <returns>RSA key pair (public and private)</returns>
         public static AsymmetricCipherKeyPair genKey(BigInteger Exp, int keySize = KeySize)
         {
             SecureRandom random = new SecureRandom();
@@ -221,7 +304,13 @@ namespace TumbleBit_Setup
             var pair = gen.GenerateKeyPair();
             return pair;
         }
-
+        /// <summary>
+        /// Generates a private key given P, Q and e
+        /// </summary>
+        /// <param name="p">P</param>
+        /// <param name="q">Q</param>
+        /// <param name="e">Public Exponent</param>
+        /// <returns>RSA key pair</returns>
         public static AsymmetricCipherKeyPair GeneratePrivate(BigInteger p, BigInteger q, BigInteger e)
         {
             BigInteger n, d, pSub1, qSub1, phi;
@@ -252,7 +341,11 @@ namespace TumbleBit_Setup
                 new RsaPrivateCrtKeyParameters(n, e, d, p, q, dP, dQ, qInv));
 
         }
-
+        /// <summary>
+        /// Converts a public key to ByteArray using the standard Asn1 standards for the specified PKCS-1.
+        /// </summary>
+        /// <param name="pubKey"> Public key to convert</param>
+        /// <returns>ByteArray representing the public key</returns>
         public static byte[] pubKeyToBytes(RsaKeyParameters pubKey)
         {
             RsaPublicKeyStructure keyStruct = new RsaPublicKeyStructure(
@@ -262,27 +355,24 @@ namespace TumbleBit_Setup
             return privInfo.ToAsn1Object().GetEncoded();
         }
 
-        public static bool TestRealKey()
+        public static bool TestWithRealKey()
         {
-            var alpha = 4999;
+            var alpha = 41;
             var key = genKey(new BigInteger("65537"));
-            var trickKey = genKey(BigInteger.Three);
-            var trickPubKey = (RsaKeyParameters)trickKey.Public;
             var privKey = (RsaPrivateCrtKeyParameters)key.Private;
             var pubKey = (RsaKeyParameters)key.Public;
-            byte[][] signature;
-            proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, out signature);
+            byte[][] signature = proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
             return verifying(pubKey, signature, alpha);
         }
 
-        public static bool TestFakeKey()
+        public static bool TestWithFakeKey()
         {
+            // Doesn't work at the moment because of "d = e.ModInverse(phi);" when generating a private key.
             var alpha = 4999;
             var key = GeneratePrivate(new BigInteger("13"), new BigInteger("20"), BigInteger.Three);
             var privKey = (RsaPrivateCrtKeyParameters)key.Private;
             var pubKey = (RsaKeyParameters)key.Public;
-            byte[][] signature;
-            proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, out signature);
+            byte[][] signature = proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
             return verifying(pubKey, signature, alpha);
         }
 
@@ -293,9 +383,9 @@ namespace TumbleBit_Setup
 
         static void Main(string[] args)
         {
-            Console.WriteLine(TestRealKey());
+            Console.WriteLine(TestWithRealKey());
             // TestPrimes(7);
-            // Console.WriteLine(TestFakeKey());
+            // Console.WriteLine(TestWithFakeKey());
             Console.WriteLine("-----Done----- Press Any Key To Exit.");
             Console.ReadLine();
         }

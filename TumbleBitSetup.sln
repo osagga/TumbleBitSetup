@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TumbleBit_Setup", "TumbleBit_Setup\TumbleBit_Setup.csproj", "{8F5320F9-F61D-42B4-8160-70E55C6B0F5B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TumbleBitSetup", "TumbleBit_Setup\TumbleBitSetup.csproj", "{8F5320F9-F61D-42B4-8160-70E55C6B0F5B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,0 +1,129 @@
+﻿using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Engines;
+using System;
+
+namespace TumbleBitSetup
+{
+    public class RsaKey
+    {
+        public const int KeySize = 2048;
+        public readonly RsaPrivateCrtKeyParameters _privKey;
+        public readonly RsaKeyParameters _pubKey;
+        
+        /// <summary>
+        /// Generates a new RSA key pair (public and private)
+        /// </summary>
+        /// <param name="Exp">Public exponent to use for generation</param>
+        /// <param name="keySize">The size of the key to generate</param>
+        /// <returns>RSA key pair (public and private)</returns>
+        public RsaKey(BigInteger Exp, int keySize = KeySize)
+        {
+            SecureRandom random = new SecureRandom();
+            var gen = new RsaKeyPairGenerator();
+            gen.Init(new RsaKeyGenerationParameters(Exp, random, KeySize, 2)); // See A.15.2 IEEE P1363 v2 D1 for certainty parameter
+            var pair = gen.GenerateKeyPair();
+            _privKey = (RsaPrivateCrtKeyParameters) pair.Private;
+            _pubKey = (RsaKeyParameters) pair.Public;
+        }
+
+        /// <summary>
+        /// Generates a new RSA key pair (public and private) given P, Q and e
+        /// </summary>
+        /// <param name="p">P</param>
+        /// <param name="q">Q</param>
+        /// <param name="e">Public Exponent</param>
+        /// <returns>RSA key pair</returns>
+        public RsaKey(BigInteger p, BigInteger q, BigInteger e)
+        {
+            var pair = GeneratePrivate(p, q, e);
+            _privKey = (RsaPrivateCrtKeyParameters)pair.Private;
+            _pubKey = (RsaKeyParameters)pair.Public;
+        }
+
+        public RsaKey(AsymmetricCipherKeyPair keyPair)
+        {
+            _privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
+            _pubKey = (RsaKeyParameters)keyPair.Public;
+        }
+        
+        /// <summary>
+        /// Preforms RSA decryption (or signing) using private key.
+        /// </summary>
+        /// <param name="encrypted">Data to decrypt (or sign)</param>
+        /// <returns></returns>
+        internal byte[] Decrypt(byte[] encrypted)
+        {
+            if (encrypted == null)
+                throw new ArgumentNullException(nameof(encrypted));
+
+            RsaEngine engine = new RsaEngine();
+            engine.Init(false, _privKey);
+
+            return engine.ProcessBlock(encrypted, 0, encrypted.Length);
+        }
+
+        /// <summary>
+        /// Generates a private key given P, Q and e
+        /// </summary>
+        /// <param name="p">P</param>
+        /// <param name="q">Q</param>
+        /// <param name="e">Public Exponent</param>
+        /// <returns>RSA key pair</returns>
+        public static AsymmetricCipherKeyPair GeneratePrivate(BigInteger p, BigInteger q, BigInteger e)
+        {
+            BigInteger n, d, pSub1, qSub1, phi;
+
+            n = p.Multiply(q);
+
+            pSub1 = p.Subtract(BigInteger.One);
+            qSub1 = q.Subtract(BigInteger.One);
+            phi = pSub1.Multiply(qSub1);
+
+            //
+            // calculate the private exponent
+            //
+
+            d = e.ModInverse(phi);
+
+            //
+            // calculate the CRT factors
+            //
+            BigInteger dP, dQ, qInv;
+
+            dP = d.Remainder(pSub1);
+            dQ = d.Remainder(qSub1);
+            qInv = q.ModInverse(p);
+
+            return new AsymmetricCipherKeyPair(
+                new RsaKeyParameters(false, n, e),
+                new RsaPrivateCrtKeyParameters(n, e, d, p, q, dP, dQ, qInv));
+
+        }
+
+        public byte[] ToBytes()
+        {
+            RsaPrivateKeyStructure keyStruct = new RsaPrivateKeyStructure(
+                _privKey.Modulus,
+                _privKey.PublicExponent,
+                _privKey.Exponent,
+                _privKey.P,
+                _privKey.Q,
+                _privKey.DP,
+                _privKey.DQ,
+                _privKey.QInv);
+
+            var privInfo = new PrivateKeyInfo(algID, keyStruct.ToAsn1Object());
+            return privInfo.ToAsn1Object().GetEncoded();
+        }
+
+        internal static AlgorithmIdentifier algID = new AlgorithmIdentifier(
+                    new DerObjectIdentifier("1.2.840.113549.1.1.1"), DerNull.Instance);
+    }
+}

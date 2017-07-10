@@ -14,9 +14,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace TumbleBit_Setup
+namespace TumbleBitSetup
 {
-    public class TumbleBit_Setup
+    public class TumbleBitSetup
     {
         internal const int KeySize = 2048;
         internal static AlgorithmIdentifier algID = new AlgorithmIdentifier(
@@ -163,7 +163,7 @@ namespace TumbleBit_Setup
         /// <param name="alpha"> Prime number specified in the setup</param>
         /// <param name="N"> Modulus used in the public key used to sign the values</param>
         /// <returns>true if the check passes, false otherwise</returns>
-        private static bool checkAlphaN(int alpha, BigInteger N)
+        internal static bool checkAlphaN(int alpha, BigInteger N)
         {
             IEnumerable<int> primesList = Primes(alpha - 1);
 
@@ -196,7 +196,7 @@ namespace TumbleBit_Setup
         /// <param name="k">Security parameter specified in the setup</param>
         /// <param name="m1">Variable to store m1 in</param>
         /// <param name="m2">Variable to store m2 in</param>
-        private static void get_m1_m2(decimal alpha, int e, int k, out int m1, out int m2)
+        internal static void get_m1_m2(decimal alpha, int e, int k, out int m1, out int m2)
         {
             double p1 = -(k + 1) / Math.Log(1.0 / ((double)alpha), 2.0);
             double p22 = 1.0 / ((double)alpha) + (1.0 / ((double)e)) * (1.0 - (1.0 / ((double)alpha)));
@@ -212,7 +212,7 @@ namespace TumbleBit_Setup
         /// <param name="pks">"public string" specified in the setup</param>
         /// <param name="pubKey">Public key used</param>
         /// <param name="rhoValues">List of the resulting rho values</param>
-        private static void getRhos(int m2, string pks, RsaKeyParameters pubKey, out byte[][] rhoValues)
+        internal static void getRhos(int m2, string pks, RsaKeyParameters pubKey, out byte[][] rhoValues)
         {
             rhoValues = new byte[m2][];
             BigInteger Modulus = pubKey.Modulus;
@@ -355,16 +355,6 @@ namespace TumbleBit_Setup
             return privInfo.ToAsn1Object().GetEncoded();
         }
 
-        public static bool TestWithRealKey()
-        {
-            var alpha = 41;
-            var key = genKey(new BigInteger("65537"));
-            var privKey = (RsaPrivateCrtKeyParameters)key.Private;
-            var pubKey = (RsaKeyParameters)key.Public;
-            byte[][] signature = proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
-            return verifying(pubKey, signature, alpha);
-        }
-
         public static bool TestWithFakeKey()
         {
             // Doesn't work at the moment because of "d = e.ModInverse(phi);" when generating a private key.
@@ -383,7 +373,6 @@ namespace TumbleBit_Setup
 
         static void Main(string[] args)
         {
-            Console.WriteLine(TestWithRealKey());
             // TestPrimes(7);
             // Console.WriteLine(TestWithFakeKey());
             Console.WriteLine("-----Done----- Press Any Key To Exit.");

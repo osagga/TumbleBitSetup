@@ -1,35 +1,30 @@
-﻿using TumbleBit_Setup;
+﻿using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Engines;
 using System;
-using TumbleBitSetup;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace TumbleBit_Setup.Tests
+namespace TumbleBitSetup.Tests
 {
     [TestClass()]
     public class ProtocolTests
     {
         [TestMethod()]
-        public void genKeyTest()
-        {
-            Assert.Fail();
-        }
-    }
-}
-
-namespace TumbleBitSetup.Tests
-{
-    [TestClass]
-    public class ProtocolTests
-    {
-        [TestMethod]
-        public void CanProveAndVerify()
+        public void provingAndVerifyingTest()
         {
             var alpha = 41;
-            var key = genKey(new BigInteger("65537"));
-            var privKey = (RsaPrivateCrtKeyParameters) key.Private;
-            var pubKey = (RsaKeyParameters) key.Public;
-            byte[][] signature = proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
-            Assert.IsTrue(verifying(pubKey, signature, alpha));
+            var keyPair = TumbleBitSetup.genKey(new BigInteger("65537"));
+
+            var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
+            var pubKey = (RsaKeyParameters)keyPair.Public;
+
+            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+
+            Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha));
         }
+
     }
 }

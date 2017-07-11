@@ -159,6 +159,7 @@ namespace TumbleBitSetup
         {
             rhoValues = new byte[m2][];
             BigInteger Modulus = key._pubKey.Modulus;
+
             for (int i = 0; i < m2; i++)
             {
                 int j = 0;
@@ -174,7 +175,7 @@ namespace TumbleBitSetup
                     byte[] output = Utils.hashFuc(combined, keySize);
                     // Convert from Bytes to BigInteger
                     BigInteger input = new BigInteger(1, output);
-                    // Check if the output is smaller than N
+                    // Check if the output is bigger or equal than N
                     if (input.CompareTo(Modulus) >= 0)
                     {
                         j++;

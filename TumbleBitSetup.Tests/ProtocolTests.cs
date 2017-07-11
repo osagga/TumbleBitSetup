@@ -12,20 +12,21 @@ namespace TumbleBitSetup.Tests
         public void provingAndVerifyingTest()
         {
             var alpha = 41;
-            var keyPair = new RsaKey(new BigInteger("65537"));
+            var keySize = 2048;
+            var keyPair = new RsaKey(new BigInteger("65537"), keySize);
 
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
             byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
 
-            Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha));
+            Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
         }
 
         [TestMethod()]
         public void CanGeneratePrimes()
         {
-            var bound = 101;
+            var bound = 4999;
             IEnumerable<int> primesList = Utils.Primes(bound);
             string s = "";
             foreach (int p in primesList)
@@ -39,6 +40,7 @@ namespace TumbleBitSetup.Tests
         {
             // Doesn't work at the moment because of "d = e.ModInverse(phi);" when generating a private key.
             var alpha = 41;
+            var keySize = 2048;
             var keyPair = new RsaKey(new BigInteger("13"), new BigInteger("20"), BigInteger.Three);
 
             var privKey = keyPair._privKey;
@@ -46,7 +48,7 @@ namespace TumbleBitSetup.Tests
 
             byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
 
-            Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha));
+            Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
         }
 
 

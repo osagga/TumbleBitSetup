@@ -13,10 +13,11 @@ namespace TumbleBitSetup
         /// MGF1 Mask Generation Function based on the SHA-256 hash function
         /// </summary>
         /// <param name="data">Input to process</param>
+        /// <param name="keySize">The size of the RSA key in bits</param>
         /// <returns>Hashed result as a 256 Bytes array (2048 Bits)</returns>
-        internal static byte[] hashFuc(byte[] data)
+        internal static byte[] hashFuc(byte[] data, int keySize)
         {
-            byte[] output = new byte[256];
+            byte[] output = new byte[keySize/8];
             Sha256Digest sha256 = new Sha256Digest();
             var generator = new Mgf1BytesGenerator(sha256);
             generator.Init(new MgfParameters(data));

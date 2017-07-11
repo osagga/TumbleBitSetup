@@ -39,7 +39,7 @@ namespace TumbleBitSetup
             var pubKey = new RsaPubKey(keyPair);
 
             // Generate list of rho values
-            getRhos(m2, pks, pubKey, out rhoValues);
+            getRhos(m2, pks, pubKey, N.BitLength, out rhoValues);
 
             // Signing the Rho values
             sigs = new byte[m2][];
@@ -59,17 +59,18 @@ namespace TumbleBitSetup
         /// <param name="pubKey">Public Key used to verify the signatures</param>
         /// <param name="sigs">List of signatures to verify</param>
         /// <param name="alpha">Prime number specified in the setup</param>
+        /// <param name="keySize">The size of the RSA key in bits</param>
         /// <param name="k">Security parameter as specified in the setup.</param>
         /// <param name="pks">The "public string" from the setup</param>
         /// <returns> true if the signatures verify, false otherwise</returns>
-        public static bool verifying(RsaPubKey pubKey, byte[][] sigs, int alpha, string pks = "public string", int k = 128)
+        public static bool verifying(RsaPubKey pubKey, byte[][] sigs, int alpha, int keySize, string pks = "public string", int k = 128)
         {
             var Modulus = pubKey._pubKey.Modulus;
             var Exponent = pubKey._pubKey.Exponent;
             byte[][] rhoValues;
 
-            // Checking N
-            if (!(Modulus.CompareTo(new BigInteger("2").Pow(RsaKey.KeySize - 1)) >= 0))
+            // Checking that N > 2^{KeySize-1}
+            if (!(Modulus.CompareTo(new BigInteger("2").Pow(keySize - 1)) >= 0))
                 return false;
 
             // Generate m1 and m2
@@ -89,7 +90,7 @@ namespace TumbleBitSetup
             var pubKeyPrime = new RsaPubKey(new RsaKeyParameters(false, Modulus, eN));
 
             // Generate list of rho values
-            getRhos(m2, pks, pubKey, out rhoValues);
+            getRhos(m2, pks, pubKey, keySize, out rhoValues);
 
             // Encrypting and verifying the signatures
             for (int i = 0; i < m2; i++)
@@ -145,15 +146,16 @@ namespace TumbleBitSetup
             m2 = (int)Math.Ceiling(p2);
             return;
         }
-        
+
         /// <summary>
         /// Generates a list of rho values as specified in the while-loop in the setup (section 2.8)
         /// </summary>
         /// <param name="m2">m2 as calculated</param>
         /// <param name="pks">"public string" specified in the setup</param>
-        /// <param name="pubKey">Public key used</param>
+        /// <param name="key">Public key used</param>
+        /// <param name="keySize">The size of the RSA key in bits</param>
         /// <param name="rhoValues">List of the resulting rho values</param>
-        internal static void getRhos(int m2, string pks, RsaPubKey key, out byte[][] rhoValues)
+        internal static void getRhos(int m2, string pks, RsaPubKey key, int keySize, out byte[][] rhoValues)
         {
             rhoValues = new byte[m2][];
             BigInteger Modulus = key._pubKey.Modulus;
@@ -169,7 +171,7 @@ namespace TumbleBitSetup
                     // Combine PK with the rest of the string
                     var combined = Utils.Combine(keyBytes, sBytes);
                     // Pass the bytes to H_1
-                    byte[] output = Utils.hashFuc(combined);
+                    byte[] output = Utils.hashFuc(combined, keySize);
                     // Convert from Bytes to BigInteger
                     BigInteger input = new BigInteger(1, output);
                     // Check if the output is smaller than N

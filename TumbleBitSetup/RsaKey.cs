@@ -13,7 +13,6 @@ namespace TumbleBitSetup
 {
     public class RsaKey
     {
-        public const int KeySize = 2048;
         public readonly RsaPrivateCrtKeyParameters _privKey;
         public readonly RsaKeyParameters _pubKey;
         
@@ -23,11 +22,11 @@ namespace TumbleBitSetup
         /// <param name="Exp">Public exponent to use for generation</param>
         /// <param name="keySize">The size of the key to generate</param>
         /// <returns>RSA key pair (public and private)</returns>
-        public RsaKey(BigInteger Exp, int keySize = KeySize)
+        public RsaKey(BigInteger Exp, int keySize)
         {
             SecureRandom random = new SecureRandom();
             var gen = new RsaKeyPairGenerator();
-            gen.Init(new RsaKeyGenerationParameters(Exp, random, KeySize, 2)); // See A.15.2 IEEE P1363 v2 D1 for certainty parameter
+            gen.Init(new RsaKeyGenerationParameters(Exp, random, keySize, 2)); // See A.15.2 IEEE P1363 v2 D1 for certainty parameter
             var pair = gen.GenerateKeyPair();
             _privKey = (RsaPrivateCrtKeyParameters) pair.Private;
             _pubKey = (RsaKeyParameters) pair.Public;

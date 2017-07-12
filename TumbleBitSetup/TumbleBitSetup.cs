@@ -70,7 +70,7 @@ namespace TumbleBitSetup
             byte[][] rhoValues;
 
             // Checking that N > 2^{KeySize-1}
-            if (!(Modulus.CompareTo(new BigInteger("2").Pow(keySize - 1)) >= 0))
+            if (!(Modulus.BitLength == keySize))
                 return false;
 
             // Generate m1 and m2

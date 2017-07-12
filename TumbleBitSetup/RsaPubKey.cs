@@ -1,6 +1,7 @@
 ﻿using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Crypto.Engines;
 using System;
 
@@ -26,6 +27,10 @@ namespace TumbleBitSetup
             _pubKey = key._pubKey;
         }
 
+        public RsaPubKey(BigInteger N, BigInteger e)
+        {
+            _pubKey = new RsaKeyParameters(false, N, e);
+        }
         /// <summary>
         /// Preforms RSA encryption using public key.
         /// </summary>

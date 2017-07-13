@@ -172,7 +172,7 @@ namespace TumbleBitSetup
                     // Combine PK with the rest of the string
                     var combined = Utils.Combine(keyBytes, sBytes);
                     // Pass the bytes to H_1
-                    byte[] output = Utils.hashFuc(combined, keySize);
+                    byte[] output = Utils.MGF1_SHA256(combined, keySize);
                     // Convert from Bytes to BigInteger
                     BigInteger input = new BigInteger(1, output);
                     // Check if the output is bigger or equal than N

@@ -15,7 +15,7 @@ namespace TumbleBitSetup
         /// <param name="data">Input to process</param>
         /// <param name="keySize">The size of the RSA key in bits</param>
         /// <returns>Hashed result as a 256 Bytes array (2048 Bits)</returns>
-        internal static byte[] hashFuc(byte[] data, int keySize)
+        internal static byte[] MGF1_SHA256(byte[] data, int keySize)
         {
             byte[] output = new byte[keySize/8];
             Sha256Digest sha256 = new Sha256Digest();

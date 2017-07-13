@@ -226,8 +226,8 @@ namespace TumbleBitSetup.Tests
             var pubKey = new RsaPubKey(keyPair);
 
             byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
-
-            Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
+            // The keySize that was passed is 2048
+            Assert.IsFalse(TumbleBitSetup.verifying(pubKey, signature, alpha, 2048));
         }
 
         [TestMethod()]

@@ -1,5 +1,4 @@
 ﻿using Org.BouncyCastle.Math;
-using System.Collections.Generic;
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -229,35 +228,7 @@ namespace TumbleBitSetup.Tests
             Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
         }
 
-        public bool func_3E()
-        {
-            /*
-             * This function would return true/false using the same setup for Test 3E
-             * Let p be alpha and q is some good prime such that
-             * the modulus N=pq is still a "sufficiently long" 
-             * 
-            */
-
-            BigInteger p, q;
-
-            p = BigInteger.ValueOf(alpha);
-
-            int pbitlength = p.BitLength;
-            int qbitlength = (keySize - pbitlength);
-
-            q = Utils.GenQ(p, qbitlength, keySize, Exp);
-
-            var keyPair = new RsaKey(p, q, Exp);
-
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
-
-            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
-
-            return TumbleBitSetup.verifying(pubKey, signature, alpha, keySize);
-        }
-
-        //[TestMethod()]
+        [TestMethod()]
         public void Test3E_multiple()
         {
             /*
@@ -265,7 +236,7 @@ namespace TumbleBitSetup.Tests
              * (This assumes that Utils.GenQ() will give a new q every time)
             */
             for (int i = 0; i < 100; i++)
-                Assert.IsTrue(func_3E());
+                Test3E();
         }
 
         [TestMethod()]

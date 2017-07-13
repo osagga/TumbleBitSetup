@@ -94,8 +94,8 @@ namespace TumbleBitSetup.Tests
 
             for (;;)
             {
-                p = Utils.GenRandomInt(pbitlength, false);
-                q = Utils.GenRandomInt(qbitlength, false);
+                p = TestUtils.GenRandomInt(pbitlength, false);
+                q = TestUtils.GenRandomInt(qbitlength, false);
                 BigInteger N = p.Multiply(q);
                 if (!(N.BitLength == keySize))
                     break;
@@ -125,8 +125,8 @@ namespace TumbleBitSetup.Tests
             int pbitlength = (keySize + 1) / 2;
             int qbitlength = (keySize - pbitlength);
 
-            p = Utils.GenRandomInt(pbitlength, true, false);
-            q = Utils.GenQ(p, qbitlength, keySize, Exp);
+            p = TestUtils.GenRandomInt(pbitlength, true, false);
+            q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
 
             // This doesn't work for now because of the check in ModInverse for Q_inv
             var keyPair = new RsaKey(p, q, Exp);
@@ -155,7 +155,7 @@ namespace TumbleBitSetup.Tests
             int pbitlength = p.BitLength;
             int qbitlength = (keySize - pbitlength);
 
-            q = Utils.GenQ(p, qbitlength, keySize, Exp);
+            q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
             
             var keyPair = new RsaKey(p, q, Exp);
 
@@ -187,7 +187,7 @@ namespace TumbleBitSetup.Tests
             int pbitlength = p.BitLength;
             int qbitlength = (keySize - pbitlength);
 
-            q = Utils.GenQ(p, qbitlength, keySize, Exp);
+            q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
 
             var keyPair = new RsaKey(p, q, Exp);
 
@@ -216,7 +216,7 @@ namespace TumbleBitSetup.Tests
             int pbitlength = p.BitLength;
             int qbitlength = (keySize - pbitlength);
 
-            q = Utils.GenQ(p, qbitlength, keySize, Exp);
+            q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
 
             var keyPair = new RsaKey(p, q, Exp);
 
@@ -233,7 +233,7 @@ namespace TumbleBitSetup.Tests
         {
             /*
              * Repeat test 3E a 100 times with a different modulus N each time.
-             * (This assumes that Utils.GenQ() will give a new q every time)
+             * (This assumes that TestUtils.GenQ() will give a new q every time)
             */
             for (int i = 0; i < 100; i++)
                 Test3E();
@@ -280,12 +280,12 @@ namespace TumbleBitSetup.Tests
         [TestMethod()]
         public void prefixPrimes()
         {
-            // confirm that the output of Utils.Prime(A) is the prefix of the output of Utils.Prime(B), where B >> A
+            // confirm that the output of TestUtils.Prime(A) is the prefix of the output of TestUtils.Prime(B), where B >> A
             for (int i = 100; i < 200; i++)
             {
                 var smallPrimeList = Utils.Primes(i).ToList();
                 var largePrimeList = Utils.Primes(i+1).ToList();
-                Assert.IsTrue(Utils.isSubset(smallPrimeList, largePrimeList));
+                Assert.IsTrue(TestUtils.isSubset(smallPrimeList, largePrimeList));
             }
         }
 

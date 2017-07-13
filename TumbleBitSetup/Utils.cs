@@ -163,7 +163,7 @@ namespace TumbleBitSetup
         }
         
         /// <summary>
-        /// Checks if t2 is a subset of t1
+        /// Checks if t1 is a subset of t2
         /// </summary>
         /// <param name="t1"></param>
         /// <param name="t2"></param>

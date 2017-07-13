@@ -67,6 +67,20 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
+        public void shortKeySize()
+        {
+            // A case where keySize is 1024-bits long (Sanity check)
+            var keySize = 1024;
+            var keyPair = new RsaKey(Exp, keySize);
+
+            var privKey = keyPair._privKey;
+            var pubKey = new RsaPubKey(keyPair);
+
+            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
+        }
+
+        [TestMethod()]
         public void Test3A()
         {
             /* Test 3A
@@ -215,6 +229,45 @@ namespace TumbleBitSetup.Tests
             Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
         }
 
+        public bool func_3E()
+        {
+            /*
+             * This function would return true/false using the same setup for Test 3E
+             * Let p be alpha and q is some good prime such that
+             * the modulus N=pq is still a "sufficiently long" 
+             * 
+            */
+
+            BigInteger p, q;
+
+            p = BigInteger.ValueOf(alpha);
+
+            int pbitlength = p.BitLength;
+            int qbitlength = (keySize - pbitlength);
+
+            q = Utils.GenQ(p, qbitlength, keySize, Exp);
+
+            var keyPair = new RsaKey(p, q, Exp);
+
+            var privKey = keyPair._privKey;
+            var pubKey = new RsaPubKey(keyPair);
+
+            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+
+            return TumbleBitSetup.verifying(pubKey, signature, alpha, keySize);
+        }
+
+        //[TestMethod()]
+        public void Test3E_multiple()
+        {
+            /*
+             * Repeat test 3E a 100 times with a different modulus N each time.
+             * (This assumes that Utils.GenQ() will give a new q every time)
+            */
+            for (int i = 0; i < 100; i++)
+                Assert.IsTrue(func_3E());
+        }
+
         [TestMethod()]
         public void shortN()
         {
@@ -233,14 +286,23 @@ namespace TumbleBitSetup.Tests
         [TestMethod()]
         public void evenE()
         {
-            // Let the RSA key be such that e=6.  Verification should fail.
+            /*
+             * Let the RSA key be such that e=6.  Verification should fail.
+             * This test generates an RSA key with e = Exp then passes (N, 6)
+             * as the publicKey to the verifier function.
+             * 
+            */
+
+            // Generating a "normal" RSA key
             var keyPair = new RsaKey(Exp, keySize);
 
             var privKey = keyPair._privKey;
+            // Modifing the publicKey to be (N, 6) instead of (N, Exp).
             var pubKey = new RsaPubKey(privKey.Modulus, BigInteger.ValueOf(6));
 
+            // Using the "normal" key to make signatures
             byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
-
+            // Passing the modified publicKey to verify.
             Assert.IsFalse(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
         }
 

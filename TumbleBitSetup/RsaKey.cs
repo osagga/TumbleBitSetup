@@ -11,7 +11,7 @@ using System;
 
 namespace TumbleBitSetup
 {
-    internal class RsaKey
+    public class RsaKey
     {
         internal readonly RsaPrivateCrtKeyParameters _privKey;
         internal readonly RsaKeyParameters _pubKey;
@@ -22,7 +22,7 @@ namespace TumbleBitSetup
         /// <param name="Exp">Public exponent to use for generation</param>
         /// <param name="keySize">The size of the key to generate</param>
         /// <returns>RSA key pair (public and private)</returns>
-        internal RsaKey(BigInteger Exp, int keySize)
+        public RsaKey(BigInteger Exp, int keySize)
         {
             SecureRandom random = new SecureRandom();
             var gen = new RsaKeyPairGenerator();
@@ -39,14 +39,14 @@ namespace TumbleBitSetup
         /// <param name="q">Q</param>
         /// <param name="e">Public Exponent</param>
         /// <returns>RSA key pair</returns>
-        internal RsaKey(BigInteger p, BigInteger q, BigInteger e)
+        public RsaKey(BigInteger p, BigInteger q, BigInteger e)
         {
             var pair = GeneratePrivate(p, q, e);
             _privKey = (RsaPrivateCrtKeyParameters)pair.Private;
             _pubKey = (RsaKeyParameters)pair.Public;
         }
 
-        internal RsaKey(AsymmetricCipherKeyPair keyPair)
+        public RsaKey(AsymmetricCipherKeyPair keyPair)
         {
             _privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
             _pubKey = (RsaKeyParameters)keyPair.Public;

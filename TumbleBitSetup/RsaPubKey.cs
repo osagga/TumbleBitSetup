@@ -7,11 +7,11 @@ using System;
 
 namespace TumbleBitSetup
 {
-    internal class RsaPubKey
+    public class RsaPubKey
     {
         internal readonly RsaKeyParameters _pubKey;
 
-        internal RsaPubKey(RsaKeyParameters key)
+        public RsaPubKey(RsaKeyParameters key)
         {
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
@@ -19,7 +19,7 @@ namespace TumbleBitSetup
             _pubKey = key;
         }
 
-        internal RsaPubKey(RsaKey key)
+        public RsaPubKey(RsaKey key)
         {
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
@@ -27,7 +27,7 @@ namespace TumbleBitSetup
             _pubKey = key._pubKey;
         }
 
-        internal RsaPubKey(BigInteger N, BigInteger e)
+        public RsaPubKey(BigInteger N, BigInteger e)
         {
             _pubKey = new RsaKeyParameters(false, N, e);
         }

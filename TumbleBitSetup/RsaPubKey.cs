@@ -7,11 +7,11 @@ using System;
 
 namespace TumbleBitSetup
 {
-    public class RsaPubKey
+    internal class RsaPubKey
     {
         internal readonly RsaKeyParameters _pubKey;
 
-        public RsaPubKey(RsaKeyParameters key)
+        internal RsaPubKey(RsaKeyParameters key)
         {
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
@@ -19,7 +19,7 @@ namespace TumbleBitSetup
             _pubKey = key;
         }
 
-        public RsaPubKey(RsaKey key)
+        internal RsaPubKey(RsaKey key)
         {
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
@@ -27,16 +27,17 @@ namespace TumbleBitSetup
             _pubKey = key._pubKey;
         }
 
-        public RsaPubKey(BigInteger N, BigInteger e)
+        internal RsaPubKey(BigInteger N, BigInteger e)
         {
             _pubKey = new RsaKeyParameters(false, N, e);
         }
+        
         /// <summary>
         /// Preforms RSA encryption using public key.
         /// </summary>
         /// <param name="data">Data to encrypt</param>
         /// <returns></returns>
-        public byte[] Encrypt(byte[] data)
+        internal byte[] Encrypt(byte[] data)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
@@ -51,7 +52,7 @@ namespace TumbleBitSetup
         /// Converts a public key to ByteArray using the standard Asn1 standards for the specified PKCS-1.
         /// </summary>
         /// <returns>ByteArray representing the public key</returns>
-        public byte[] ToBytes()
+        internal byte[] ToBytes()
         {
             RsaPublicKeyStructure keyStruct = new RsaPublicKeyStructure(
                 _pubKey.Modulus,

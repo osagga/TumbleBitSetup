@@ -11,10 +11,10 @@ using System;
 
 namespace TumbleBitSetup
 {
-    public class RsaKey
+    internal class RsaKey
     {
-        public readonly RsaPrivateCrtKeyParameters _privKey;
-        public readonly RsaKeyParameters _pubKey;
+        internal readonly RsaPrivateCrtKeyParameters _privKey;
+        internal readonly RsaKeyParameters _pubKey;
         
         /// <summary>
         /// Generates a new RSA key pair (public and private)
@@ -22,7 +22,7 @@ namespace TumbleBitSetup
         /// <param name="Exp">Public exponent to use for generation</param>
         /// <param name="keySize">The size of the key to generate</param>
         /// <returns>RSA key pair (public and private)</returns>
-        public RsaKey(BigInteger Exp, int keySize)
+        internal RsaKey(BigInteger Exp, int keySize)
         {
             SecureRandom random = new SecureRandom();
             var gen = new RsaKeyPairGenerator();
@@ -39,14 +39,14 @@ namespace TumbleBitSetup
         /// <param name="q">Q</param>
         /// <param name="e">Public Exponent</param>
         /// <returns>RSA key pair</returns>
-        public RsaKey(BigInteger p, BigInteger q, BigInteger e)
+        internal RsaKey(BigInteger p, BigInteger q, BigInteger e)
         {
             var pair = GeneratePrivate(p, q, e);
             _privKey = (RsaPrivateCrtKeyParameters)pair.Private;
             _pubKey = (RsaKeyParameters)pair.Public;
         }
 
-        public RsaKey(AsymmetricCipherKeyPair keyPair)
+        internal RsaKey(AsymmetricCipherKeyPair keyPair)
         {
             _privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
             _pubKey = (RsaKeyParameters)keyPair.Public;
@@ -75,7 +75,7 @@ namespace TumbleBitSetup
         /// <param name="q">Q</param>
         /// <param name="e">Public Exponent</param>
         /// <returns>RSA key pair</returns>
-        public static AsymmetricCipherKeyPair GeneratePrivate(BigInteger p, BigInteger q, BigInteger e)
+        internal static AsymmetricCipherKeyPair GeneratePrivate(BigInteger p, BigInteger q, BigInteger e)
         {
             BigInteger n, d, pSub1, qSub1, phi;
 
@@ -106,7 +106,7 @@ namespace TumbleBitSetup
 
         }
 
-        public byte[] ToBytes()
+        internal byte[] ToBytes()
         {
             RsaPrivateKeyStructure keyStruct = new RsaPrivateKeyStructure(
                 _privKey.Modulus,

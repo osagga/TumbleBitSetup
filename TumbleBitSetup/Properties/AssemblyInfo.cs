@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("BUSEC")]
-[assembly: AssemblyProduct("TumbleBit_Setup")]
+[assembly: AssemblyProduct("TumbleBitSetup")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

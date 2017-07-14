@@ -4,7 +4,6 @@ using Org.BouncyCastle.Utilities;
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Text;
 
 namespace TumbleBitSetup
 {

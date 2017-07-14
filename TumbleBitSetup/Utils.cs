@@ -1,6 +1,7 @@
 ﻿using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Math;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -41,7 +42,17 @@ namespace TumbleBitSetup
 
             return combined;
         }
-
+        
+        /// <summary>
+        /// Returns how many Octets are needed to represent the integer x
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        internal static int getOctetLen(int x)
+        {
+            return (int)Math.Ceiling((1.0 / 8.0) * Math.Log(x, 2));
+        }
+        
         /// <summary>
         /// Generates a list of primes up to and including the input bound
         /// </summary>
@@ -75,6 +86,61 @@ namespace TumbleBitSetup
                 if (!composite[i]) yield return 2 * i + 3;
             }
         }
-        
+
+        /// <summary>
+        /// converts a non-negative integer to an octet string of a specified length.
+        /// </summary>
+        /// <param name="x">non-negative integer</param>
+        /// <param name="xLen">specified length</param>
+        /// <returns></returns> 
+        internal static byte[] I2OSP(int x, int xLen)
+        {
+            byte[] outBytes = new byte[xLen];
+
+            if (x < 0)
+                throw new ArgumentOutOfRangeException("only positive integers");
+
+            // checks If x >= 256^xLen
+            if (BigInteger.ValueOf(x).CompareTo(BigInteger.ValueOf(256).Pow(xLen)) >= 0)
+                throw new ArithmeticException("integer too large");
+
+            // converts x to an unsigned byteArray.
+            for (int i = 0; (x > 0) && (i < outBytes.Length); i++)
+            {
+                outBytes[i] = (byte)(x % 256);
+                x /= 256;
+            }
+            
+            // make sure the output is BigEndian
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(outBytes, 0, outBytes.Length);
+
+            return outBytes;
+        }
+
+        /// <summary>
+        /// converts an octet string to a nonnegative BigInteger.
+        /// </summary>
+        /// <param name="x">Octet String</param>
+        /// <returns></returns>
+        public static BigInteger OS2IP(byte[] x)
+        {
+            int i;
+
+            // To skip the first leading zeros (if they exist)
+            for (i = 0; (x[i] == 0x00) && (i < x.Length); i++)
+                continue;
+            i--;
+
+            if (i > 0)
+            {
+                // If there exits leading zeros, skip them
+                byte[] result = new byte[x.Length - i];
+                Buffer.BlockCopy(x, i, result, 0, result.Length);
+                return new BigInteger(1, result);
+            }
+            else
+                return new BigInteger(1, x);
+        }
     }
 }

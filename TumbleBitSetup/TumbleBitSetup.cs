@@ -1,5 +1,6 @@
 ﻿using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -157,31 +158,37 @@ namespace TumbleBitSetup
         /// <param name="rhoValues">List of the resulting rho values</param>
         internal static void getRhos(int m2, string pks, RsaPubKey key, int keySize, out byte[][] rhoValues)
         {
+            var m2Len = Utils.getOctetLen(m2);
             rhoValues = new byte[m2][];
             BigInteger Modulus = key._pubKey.Modulus;
 
             for (int i = 0; i < m2; i++)
             {
-                int j = 0;
+                int j = 2;
                 while (true)
                 {
-                    // Byte representation of the PublicKey
+                    // OctetLength of j
+                    var jLen = Utils.getOctetLen(j);
+                    // ASN.1 encoding of the PublicKey
                     var keyBytes = key.ToBytes();
-                    // Byte representation of ("public string||i||j")
-                    var sBytes = Encoding.UTF8.GetBytes(pks + i.ToString() + j.ToString());
+                    // Byte representation of "public string"
+                    var psBytes = Strings.ToByteArray(pks);
+                    // Byte representation of (i, j)
+                    var EI = Utils.I2OSP(i, m2Len);
+                    var EJ = Utils.I2OSP(j, jLen);
                     // Combine PK with the rest of the string
-                    var combined = Utils.Combine(keyBytes, sBytes);
+                    var combined = Utils.Combine(keyBytes, Utils.Combine(psBytes,Utils.Combine(EI, EJ)));
                     // Pass the bytes to H_1
-                    byte[] output = Utils.MGF1_SHA256(combined, keySize);
+                    byte[] ER = Utils.MGF1_SHA256(combined, keySize);
                     // Convert from Bytes to BigInteger
-                    BigInteger input = new BigInteger(1, output);
+                    BigInteger input = Utils.OS2IP(ER);
                     // Check if the output is bigger or equal than N
                     if (input.CompareTo(Modulus) >= 0)
                     {
                         j++;
                         continue;
                     }
-                    rhoValues[i] = output;
+                    rhoValues[i] = ER;
                     break;
                 }
             }

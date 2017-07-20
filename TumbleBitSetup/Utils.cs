@@ -170,26 +170,43 @@ namespace TumbleBitSetup
                 return new BigInteger(1, x);
         }
 
-        public static byte[] SHA_256(byte[] data, int k)
+        internal static byte[] SHA_256(byte[] data)
         {
-            return SHA_256(data, 0, data.Length, k);
+            return SHA_256(data, 0, data.Length);
         }
 
-        public static byte[] SHA_256(byte[] data, int count, int k)
+        internal static byte[] SHA_256(byte[] data, int count)
         {
-            return SHA_256(data, 0, count, k);
+            return SHA_256(data, 0, count);
         }
 
-        public static byte[] SHA_256(byte[] data, int offset, int count, int k)
+        internal static byte[] SHA_256(byte[] data, int offset, int count)
         {
 			Sha256Digest sha256 = new Sha256Digest();
 			sha256.BlockUpdate(data, offset, count);
-			byte[] rv = new byte[k/8]; // Not sure if this what step 5 means, also need to keep in mind that k should be a multiple of 8 in this case, which might not always hold. So how to deal with different k values? Add padding?
+			byte[] rv = new byte[32];
 			sha256.DoFinal(rv, 0);
 			return rv;
         }
 
+        internal static byte[] truncateKbits(byte[] srcArray, int k)
+        {
+            var BitsPerByte = 8;
 
+            // Number of bytes needed for k bits
+            int nBytes = (k + BitsPerByte - 1) / BitsPerByte;
 
+            byte[] dstArray = new byte[nBytes];
+
+            // Fill the output array with nBytes of srcArray
+            System.Buffer.BlockCopy(srcArray, 0, dstArray, 0, nBytes);
+
+            // strip off any excess bits in the MSB (from BouncyCastle, BigInteger.cs #L652)
+            int xBits = BitsPerByte * nBytes - k;
+            dstArray[0] &= (byte)(255U >> xBits);
+
+            return dstArray;
+
+        }
     }
 }

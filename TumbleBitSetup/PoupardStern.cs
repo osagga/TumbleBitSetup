@@ -89,7 +89,7 @@ namespace TumbleBitSetup
 
             // Checking that:
             // if y >= 2^{ |N| - 1 }
-            if (y.BitLength != keyLength) // Assuming that these two tests are equivalent.  
+            if (y.BitLength != keyLength)  
                 return false;
             // if y < 0
             if (y.CompareTo(BigInteger.Zero) < 0)
@@ -128,7 +128,7 @@ namespace TumbleBitSetup
         internal static BigInteger sampleFromZnStar(RsaPubKey pubKey, string ps, int i, int k, int keyLength)
         {
             BigInteger Modulus = pubKey._pubKey.Modulus;
-            int j = 2; // We might need to modify this
+            int j = 2; // We might need to modify this (check #1)
             // Octet Length of i
             int iLen = (int) Math.Ceiling( (1.0 / 8.0) * Math.Log( k + Math.Log( keyLength, 2.0), 2.0) );
             // Byte representation of i
@@ -180,7 +180,9 @@ namespace TumbleBitSetup
             // Concatenating the rest of s
             var s = Utils.Combine(keyBytes, Utils.Combine(psBytes, ExComb));
             // Hash the OctetString
-            var BigW = Utils.SHA_256(s, k);
+            var BigW = Utils.SHA_256(s);
+            // Truncate to k bits
+            BigW = Utils.truncateKbits(BigW, k);
             // Convert to an Integer and return
             w = Utils.OS2IP(BigW);
         }
@@ -207,11 +209,14 @@ namespace TumbleBitSetup
 
             // Initialize a cryptographic randomness.
             SecureRandom random = new SecureRandom();
+
             // This is a huge numebr! Can't create a byte array that huge.
             // Doesn't work for now, need to think about it.
             BigInteger bitSize = BigInteger.Two.Pow(BitLength - 1);
+
             // Doesn't work for now.
             r = new BigInteger(System.Int32.MaxValue, random);
+
             return;
         }
 

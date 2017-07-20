@@ -207,7 +207,7 @@ namespace TumbleBitSetup
         {
             var BitsPerByte = 8;
 
-            // Number of bytes needed for k bits
+            // Number of bytes needed for k bits (from BouncyCastle, BigInteger.cs #L244)
             int nBytes = (k + BitsPerByte - 1) / BitsPerByte;
 
             byte[] dstArray = new byte[nBytes];

@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TumbleBitSetup.Tests
 {
-
     [TestClass()]
     public class ProtocolTests
     {
@@ -67,7 +66,7 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
-        public void shortKeySize()
+        public void ShortKeySize()
         {
             // A case where keySize is 1024-bits long (Sanity check)
             var keySize = 1024;
@@ -81,7 +80,7 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
-        public void test_I2OSP_l()
+        public void Test_I2OSP_l()
         {
             // Test if we can encode and decode successfully (Int Type).
             int size = 10;
@@ -97,7 +96,7 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
-        public void test_I2OSP_2()
+        public void Test_I2OSP_2()
         {
             // Test if we can encode and decode successfully (BigInteger Type).
             int size = 10;
@@ -115,7 +114,7 @@ namespace TumbleBitSetup.Tests
 
         [TestMethod()]
         [ExpectedException(typeof(ArithmeticException))]
-        public void test_I2OSP_3()
+        public void Test_I2OSP_3()
         {
             // Test if size is smaller than needed.
             // Should give a ArithmeticException.
@@ -125,18 +124,7 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
-        public void Test3E_multiple()
-        {
-            /*
-             * Repeat test 3E a 100 times with a different modulus N each time.
-             * (This assumes that TestUtils.GenQ() will give a new q every time)
-            */
-            for (int i = 0; i < 100; i++)
-                Test3E();
-        }
-
-        [TestMethod()]
-        public void shortN()
+        public void ShortN()
         {
             // A case where N is a 1024 - bit long prime(rather than 2048 - bits)
             var keySize = 1024;
@@ -151,7 +139,7 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
-        public void evenE()
+        public void EvenE()
         {
             /*
              * Let the RSA key be such that e=6.  Verification should fail.
@@ -174,7 +162,7 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
-        public void prefixPrimes()
+        public void PrefixPrimes()
         {
             // confirm that the output of TestUtils.Prime(A) is the prefix of the output of TestUtils.Prime(B), where B >> A
             for (int i = 100; i < 200; i++)
@@ -332,6 +320,17 @@ namespace TumbleBitSetup.Tests
             byte[][] signature = TumbleBitSetup.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
 
             Assert.IsTrue(TumbleBitSetup.Verifying(pubKey, signature, alpha, keySize));
+        }
+
+        [TestMethod()]
+        public void Test3E_multiple()
+        {
+            /*
+             * Repeat test 3E a 100 times with a different modulus N each time.
+             * (This assumes that TestUtils.GenQ() will give a new q every time)
+            */
+            for (int i = 0; i < 100; i++)
+                Test3E();
         }
 
     }

@@ -197,15 +197,15 @@ namespace TumbleBitSetup
             for (int i = 1; i < BigK; i++)
             {
                 var tmp = Utils.I2OSP(xValues[i], ExLen);
-                ExComb = Utils.Combine(Ex_0, tmp);
+                ExComb = Utils.Combine(ExComb, tmp);
                 Ex_0 = ExComb;
             }
             // Concatenating the rest of s
             var s = Utils.Combine(keyBytes, Utils.Combine(psBytes, ExComb));
             // Hash the OctetString
             var BigW = Utils.SHA256(s);
-            // Truncate to k bits
-            BigW = Utils.truncateKbits(BigW, k);
+            // Truncate to k-bits
+            BigW = Utils.truncateKbits(BigW, k); // This step here needs review, not fully sure that this is the required.
             // Convert to an Integer and return
             w = Utils.OS2IP(BigW);
         }
@@ -221,21 +221,21 @@ namespace TumbleBitSetup
             BigK = (int)Math.Ceiling(p1);
             return;
         }
-        
+
         /// <summary>
         /// Calculates the value of r as specified in page 12 of the setup.
         /// </summary>
-        /// <param name="BitLength">The length of the RSA Modulus</param>
-        internal static void getR(int BitLength, out BigInteger r)
+        /// <param name="BitLength">The size of the RSA key in bits</param>
+        internal static void getR(int keyLength, out BigInteger r)
         {
             // !DOESN'T WORK FOR NOW!
 
             // Initialize a cryptographic randomness.
             SecureRandom random = new SecureRandom();
 
-            // This is a huge numebr! Can't create a byte array that huge.
+            // This is a huge number! Can't create a byte array that huge.
             // Doesn't work for now, need to think about it.
-            BigInteger bitSize = BigInteger.Two.Pow(BitLength - 1);
+            BigInteger bitSize = BigInteger.Two.Pow(keyLength - 1);
 
             // Doesn't work for now.
             r = new BigInteger(System.Int32.MaxValue, random);

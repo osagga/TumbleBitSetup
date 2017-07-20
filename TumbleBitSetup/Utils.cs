@@ -118,6 +118,33 @@ namespace TumbleBitSetup
             return outBytes;
         }
 
+        internal static byte[] I2OSP(BigInteger x, int xLen)
+        {
+            byte[] outBytes = new byte[xLen];
+
+            var N256 = BigInteger.ValueOf(256);
+
+            if (x.CompareTo(BigInteger.Zero) < 0)
+                throw new ArgumentOutOfRangeException("only positive integers");
+
+            // checks If x >= 256^xLen
+            if (x.CompareTo(N256.Pow(xLen)) >= 0)
+                throw new ArithmeticException("integer too large");
+
+            // converts x to an unsigned byteArray.
+            for (int i = 0; (x.CompareTo(BigInteger.Zero) > 0) && (i < outBytes.Length); i++)
+            {
+                outBytes[i] = (byte)(x.Mod(N256).LongValue);
+                x = x.Divide(N256);
+            }
+
+            // make sure the output is BigEndian
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(outBytes, 0, outBytes.Length);
+
+            return outBytes;
+        }
+
         /// <summary>
         /// converts an octet string to a nonnegative BigInteger.
         /// </summary>
@@ -142,5 +169,27 @@ namespace TumbleBitSetup
             else
                 return new BigInteger(1, x);
         }
+
+        public static byte[] SHA_256(byte[] data, int k)
+        {
+            return SHA_256(data, 0, data.Length, k);
+        }
+
+        public static byte[] SHA_256(byte[] data, int count, int k)
+        {
+            return SHA_256(data, 0, count, k);
+        }
+
+        public static byte[] SHA_256(byte[] data, int offset, int count, int k)
+        {
+			Sha256Digest sha256 = new Sha256Digest();
+			sha256.BlockUpdate(data, offset, count);
+			byte[] rv = new byte[k/8]; // Not sure if this what step 5 means, also need to keep in mind that k should be a multiple of 8 in this case, which might not always hold. So how to deal with different k values? Add padding?
+			sha256.DoFinal(rv, 0);
+			return rv;
+        }
+
+
+
     }
 }

@@ -118,6 +118,12 @@ namespace TumbleBitSetup
             return outBytes;
         }
 
+        /// <summary>
+        /// converts a non-negative BigInteger to an octet string of a specified length.
+        /// </summary>
+        /// <param name="x">non-negative BigInteger</param>
+        /// <param name="xLen">specified length</param>
+        /// <returns></returns> 
         internal static byte[] I2OSP(BigInteger x, int xLen)
         {
             byte[] outBytes = new byte[xLen];
@@ -150,7 +156,7 @@ namespace TumbleBitSetup
         /// </summary>
         /// <param name="x">Octet String</param>
         /// <returns></returns>
-        public static BigInteger OS2IP(byte[] x)
+        internal static BigInteger OS2IP(byte[] x)
         {
             int i;
 
@@ -170,17 +176,19 @@ namespace TumbleBitSetup
                 return new BigInteger(1, x);
         }
 
-        internal static byte[] SHA_256(byte[] data)
+        internal static byte[] SHA256(byte[] data)
         {
-            return SHA_256(data, 0, data.Length);
+            return SHA256(data, 0, data.Length);
         }
-
-        internal static byte[] SHA_256(byte[] data, int count)
-        {
-            return SHA_256(data, 0, count);
-        }
-
-        internal static byte[] SHA_256(byte[] data, int offset, int count)
+        
+        /// <summary>
+        /// A SHA256 hashing oracle (H_2 in the setup)
+        /// </summary>
+        /// <param name="data">message to be hashed</param>
+        /// <param name="offset">offset in the input message</param>
+        /// <param name="count">Amount of bytes to be hashed in the message</param>
+        /// <returns></returns>
+        internal static byte[] SHA256(byte[] data, int offset, int count)
         {
 			Sha256Digest sha256 = new Sha256Digest();
 			sha256.BlockUpdate(data, offset, count);
@@ -189,6 +197,12 @@ namespace TumbleBitSetup
 			return rv;
         }
 
+        /// <summary>
+        /// Truncates k-bits from the source byteArray.
+        /// </summary>
+        /// <param name="srcArray"></param>
+        /// <param name="k"> Amount of bits to truncate</param>
+        /// <returns>byteArray with k-bits</returns>
         internal static byte[] truncateKbits(byte[] srcArray, int k)
         {
             var BitsPerByte = 8;
@@ -198,10 +212,10 @@ namespace TumbleBitSetup
 
             byte[] dstArray = new byte[nBytes];
 
-            // Fill the output array with nBytes of srcArray
+            // Fill dstArray with the first nBytes of srcArray
             System.Buffer.BlockCopy(srcArray, 0, dstArray, 0, nBytes);
 
-            // strip off any excess bits in the MSB (from BouncyCastle, BigInteger.cs #L652)
+            // strip off any excess bits in the MSB of dstArray (from BouncyCastle, BigInteger.cs #L652)
             int xBits = BitsPerByte * nBytes - k;
             dstArray[0] &= (byte)(255U >> xBits);
 

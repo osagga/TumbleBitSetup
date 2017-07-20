@@ -1,17 +1,23 @@
-﻿using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
+﻿using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Text;
+
 
 namespace TumbleBitSetup
 {
     public class PoupardStern
     {
-        public static Tuple<BigInteger[], BigInteger> proving(BigInteger p, BigInteger q, BigInteger e, string ps = "public string", int k = 128)
+        /// <summary>
+        /// Proving Algorithm specified in page 12 (3.2.1) of the setup
+        /// </summary> 
+        /// <param name="p">P in the secret key</param>
+        /// <param name="q">Q in the secret key</param>
+        /// <param name="e">Public Exponent in the public key</param>
+        /// <param name="ps">The public string from the setup</param>
+        /// <param name="k">Security parameter as specified in the setup.</param>
+        /// <returns>List of x values and y</returns>
+        public static Tuple<BigInteger[], BigInteger> Proving(BigInteger p, BigInteger q, BigInteger e, string ps = "public string", int k = 128)
         {
             int BigK;
             BigInteger r, w, y;
@@ -71,16 +77,16 @@ namespace TumbleBitSetup
         }
 
         /// <summary>
-        /// Verifies a list of signatures as specified in "Verifying" at Sec 2.8
+        /// Verifying Algorithm specified in page 13 (3.3) of the setup
         /// </summary>
-        /// <param name="pubKey">Public Key used to verify the signatures</param>
-        /// <param name="sigs">List of signatures to verify</param>
-        /// <param name="alpha">Prime number specified in the setup</param>
-        /// <param name="keySize">The size of the RSA key in bits</param>
-        /// <param name="k">Security parameter as specified in the setup.</param>
-        /// <param name="pks">The "public string" from the setup</param>
-        /// <returns> true if the signatures verify, false otherwise</returns>
-        public static bool verifying(RsaPubKey pubKey, BigInteger[] xValues, BigInteger y, int keyLength, string ps = "public string", int k = 128)
+        /// <param name="pubKey">Public key used</param>
+        /// <param name="xValues">List of x_i values</param>
+        /// <param name="y">The value y as specified in the setup</param>
+        /// <param name="keyLength">The size of the RSA key in bits</param>
+        /// <param name="ps">public string specified in the setup</param>
+        /// <param name="k">Security parameter specified in the setup.</param>
+        /// <returns>true if the xValues verify, false otherwise</returns>
+        public static bool Verifying(RsaPubKey pubKey, BigInteger[] xValues, BigInteger y, int keyLength, string ps = "public string", int k = 128)
         {
             int BigK;
             BigInteger w, rPrime;
@@ -125,6 +131,15 @@ namespace TumbleBitSetup
             return true;
         }
 
+        /// <summary>
+        /// Generates a z_i value as specified in page 14 (3.3.1) of the setup
+        /// </summary>
+        /// <param name="pubKey">Public key used</param>
+        /// <param name="ps">public string specified in the setup</param>
+        /// <param name="i">index i</param>
+        /// <param name="k">Security parameter specified in the setup.</param>
+        /// <param name="keyLength">The size of the RSA key in bits</param>
+        /// <returns></returns>
         internal static BigInteger sampleFromZnStar(RsaPubKey pubKey, string ps, int i, int k, int keyLength)
         {
             BigInteger Modulus = pubKey._pubKey.Modulus;
@@ -159,14 +174,22 @@ namespace TumbleBitSetup
             }
         }
 
-        internal static void getW(RsaPubKey pubKey, string ps, BigInteger[] xValues, int k, int modulusBitLength, out BigInteger w)
+        /// <summary>
+        /// Calculates the value of w as specified in page 15 (3.3.2) of the setup
+        /// </summary>
+        /// <param name="pubKey">Public key used</param>
+        /// <param name="ps">public string specified in the setup</param>
+        /// <param name="xValues"> List of x_i values</param>
+        /// <param name="k">Security parameter as specified in the setup.</param>
+        /// <param name="keyLength">The size of the RSA key in bits</param>
+        internal static void getW(RsaPubKey pubKey, string ps, BigInteger[] xValues, int k, int keyLength, out BigInteger w)
         {
             // ASN.1 encoding of the PublicKey
             var keyBytes = pubKey.ToBytes();
             // Byte representation of "public string"
             var psBytes = Strings.ToByteArray(ps);
             // Encoding of the x_0
-            var ExLen = (1 / 8) * modulusBitLength; // This assumes that |N| is 8 * x, should we add ceiling here?
+            var ExLen = (1 / 8) * keyLength; // This assumes that |N| is 8 * x, should we add ceiling here?
             var Ex_0 = Utils.I2OSP(xValues[0], ExLen); // This assumes that we'll have at least one x Value, it could raise an "IndexOutOfRange" Error on empty list.
             // Encoding the rest of the x Values
             var BigK = xValues.Length;
@@ -180,7 +203,7 @@ namespace TumbleBitSetup
             // Concatenating the rest of s
             var s = Utils.Combine(keyBytes, Utils.Combine(psBytes, ExComb));
             // Hash the OctetString
-            var BigW = Utils.SHA_256(s);
+            var BigW = Utils.SHA256(s);
             // Truncate to k bits
             BigW = Utils.truncateKbits(BigW, k);
             // Convert to an Integer and return

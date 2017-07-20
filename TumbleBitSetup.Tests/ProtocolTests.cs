@@ -15,7 +15,7 @@ namespace TumbleBitSetup.Tests
         public BigInteger Exp = BigInteger.Three;
 
         [TestMethod()]
-        public void provingAndVerifyingTest()
+        public void ProvingAndVerifyingTest()
         {
             // Sanity check
             var keyPair = new RsaKey(Exp, keySize);
@@ -23,9 +23,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = TumbleBitSetup.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
 
-            Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
+            Assert.IsTrue(TumbleBitSetup.Verifying(pubKey, signature, alpha, keySize));
         }
 
         [TestMethod()]
@@ -43,8 +43,8 @@ namespace TumbleBitSetup.Tests
             // The different public key to be used in verifying.
             var secPubKey = new RsaPubKey(diffKey);
 
-            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
-            Assert.IsFalse(TumbleBitSetup.verifying(secPubKey, signature, alpha, keySize));
+            byte[][] signature = TumbleBitSetup.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            Assert.IsFalse(TumbleBitSetup.Verifying(secPubKey, signature, alpha, keySize));
         }
 
         [TestMethod()]
@@ -62,8 +62,8 @@ namespace TumbleBitSetup.Tests
             // The different public key to be used in verifying.
             var secPubKey = new RsaPubKey(diffKey);
 
-            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
-            Assert.IsFalse(TumbleBitSetup.verifying(secPubKey, signature, alpha, keySize));
+            byte[][] signature = TumbleBitSetup.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            Assert.IsFalse(TumbleBitSetup.Verifying(secPubKey, signature, alpha, keySize));
         }
 
         [TestMethod()]
@@ -76,8 +76,8 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
-            Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
+            byte[][] signature = TumbleBitSetup.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            Assert.IsTrue(TumbleBitSetup.Verifying(pubKey, signature, alpha, keySize));
         }
 
         [TestMethod()]
@@ -145,9 +145,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = TumbleBitSetup.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
             // The keySize that was passed is 2048
-            Assert.IsFalse(TumbleBitSetup.verifying(pubKey, signature, alpha, 2048));
+            Assert.IsFalse(TumbleBitSetup.Verifying(pubKey, signature, alpha, 2048));
         }
 
         [TestMethod()]
@@ -168,9 +168,9 @@ namespace TumbleBitSetup.Tests
             var pubKey = new RsaPubKey(privKey.Modulus, BigInteger.ValueOf(6));
 
             // Using the "normal" key to make signatures
-            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = TumbleBitSetup.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
             // Passing the modified publicKey to verify.
-            Assert.IsFalse(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
+            Assert.IsFalse(TumbleBitSetup.Verifying(pubKey, signature, alpha, keySize));
         }
 
         [TestMethod()]
@@ -212,9 +212,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = TumbleBitSetup.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
 
-            Assert.IsFalse(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
+            Assert.IsFalse(TumbleBitSetup.Verifying(pubKey, signature, alpha, keySize));
         }
 
         [TestMethod()]
@@ -240,9 +240,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = TumbleBitSetup.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
 
-            Assert.IsFalse(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
+            Assert.IsFalse(TumbleBitSetup.Verifying(pubKey, signature, alpha, keySize));
         }
 
         [TestMethod()]
@@ -268,9 +268,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = TumbleBitSetup.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
 
-            Assert.IsFalse(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
+            Assert.IsFalse(TumbleBitSetup.Verifying(pubKey, signature, alpha, keySize));
         }
 
         [TestMethod()]
@@ -300,9 +300,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = TumbleBitSetup.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
 
-            Assert.IsFalse(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
+            Assert.IsFalse(TumbleBitSetup.Verifying(pubKey, signature, alpha, keySize));
         }
 
         [TestMethod()]
@@ -329,9 +329,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = TumbleBitSetup.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
 
-            Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
+            Assert.IsTrue(TumbleBitSetup.Verifying(pubKey, signature, alpha, keySize));
         }
 
     }

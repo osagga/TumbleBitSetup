@@ -10,16 +10,16 @@ namespace TumbleBitSetup
     public class TumbleBitSetup
     {
         /// <summary>
-        /// Generate a list of signatures as specified in "Proving" at Sec 2.8
+        /// Proving Algorithm specified in page 7 (2.8.1) of the setup
         /// </summary>
         /// <param name="p">P in the secret key</param>
         /// <param name="q">Q in the secret key</param>
         /// <param name="e">Public Exponent in the public key</param>
         /// <param name="alpha">Prime number specified in the setup</param>
+        /// <param name="ps">The public string from the setup</param>
         /// <param name="k">Security parameter as specified in the setup.</param>
-        /// <param name="pks">The "public string" from the setup</param>
-        /// <returns>The resulting signatures</returns>
-        public static byte[][] proving(BigInteger p, BigInteger q, BigInteger e, int alpha, string pks = "public string", int k = 128)
+        /// <returns>List of signatures</returns>
+        public static byte[][] Proving(BigInteger p, BigInteger q, BigInteger e, int alpha, string ps = "public string", int k = 128)
         {
             int m1, m2;
             byte[][] rhoValues, sigs;
@@ -39,7 +39,7 @@ namespace TumbleBitSetup
             var pubKey = new RsaPubKey(keyPair);
 
             // Generate list of rho values
-            getRhos(m2, pks, pubKey, N.BitLength, out rhoValues);
+            getRhos(m2, ps, pubKey, N.BitLength, out rhoValues);
 
             // Signing the Rho values
             sigs = new byte[m2][];
@@ -54,23 +54,23 @@ namespace TumbleBitSetup
         }
 
         /// <summary>
-        /// Verifies a list of signatures as specified in "Verifying" at Sec 2.8
+        /// Verifying Algorithm specified in page 8 (2.8.2) of the setup
         /// </summary>
         /// <param name="pubKey">Public Key used to verify the signatures</param>
         /// <param name="sigs">List of signatures to verify</param>
         /// <param name="alpha">Prime number specified in the setup</param>
-        /// <param name="keySize">The size of the RSA key in bits</param>
+        /// <param name="keyLength">The size of the RSA key in bits</param>
+        /// <param name="ps">The "public string" from the setup</param>
         /// <param name="k">Security parameter as specified in the setup.</param>
-        /// <param name="pks">The "public string" from the setup</param>
         /// <returns> true if the signatures verify, false otherwise</returns>
-        public static bool verifying(RsaPubKey pubKey, byte[][] sigs, int alpha, int keySize, string pks = "public string", int k = 128)
+        public static bool Verifying(RsaPubKey pubKey, byte[][] sigs, int alpha, int keyLength, string ps = "public string", int k = 128)
         {
             var Modulus = pubKey._pubKey.Modulus;
             var Exponent = pubKey._pubKey.Exponent;
             byte[][] rhoValues;
 
-            // Checking that N > 2^{KeySize-1}
-            if (!(Modulus.BitLength == keySize))
+            // Checking that N > 2^{keyLength-1}
+            if (!(Modulus.BitLength == keyLength))
                 return false;
 
             // Generate m1 and m2
@@ -90,7 +90,7 @@ namespace TumbleBitSetup
             var pubKeyPrime = new RsaPubKey(new RsaKeyParameters(false, Modulus, eN));
 
             // Generate list of rho values
-            getRhos(m2, pks, pubKey, keySize, out rhoValues);
+            getRhos(m2, ps, pubKey, keyLength, out rhoValues);
 
             // Encrypting and verifying the signatures
             for (int i = 0; i < m2; i++)
@@ -115,7 +115,7 @@ namespace TumbleBitSetup
         /// Provides the check specified in step 3 of the verifying protocol.
         /// </summary>
         /// <param name="alpha"> Prime number specified in the setup</param>
-        /// <param name="N"> Modulus used in the public key used to sign the values</param>
+        /// <param name="N"> Modulus used in the public key</param>
         /// <returns>true if the check passes, false otherwise</returns>
         internal static bool checkAlphaN(int alpha, BigInteger N)
         {
@@ -133,10 +133,8 @@ namespace TumbleBitSetup
         /// Generates the values m1 and m2 as specified in the "proving" protocol in section 2.8
         /// </summary>
         /// <param name="alpha">Prime number specified in the setup</param>
-        /// <param name="e">Public Exponent used in the public key used to sign the rho values</param>
+        /// <param name="e">Public Exponent used in the public key</param>
         /// <param name="k">Security parameter specified in the setup</param>
-        /// <param name="m1">Variable to store m1 in</param>
-        /// <param name="m2">Variable to store m2 in</param>
         internal static void get_m1_m2(decimal alpha, int e, int k, out int m1, out int m2)
         {
             double p1 = -(k + 1) / Math.Log(1.0 / ((double)alpha), 2.0);
@@ -148,14 +146,13 @@ namespace TumbleBitSetup
         }
 
         /// <summary>
-        /// Generates a list of rho values as specified in the while-loop in the setup (section 2.8)
+        /// Generates a list of rho values as specified in the setup (2.8.1)
         /// </summary>
-        /// <param name="m2">m2 as calculated</param>
-        /// <param name="pks">"public string" specified in the setup</param>
+        /// <param name="m2">m2</param>
+        /// <param name="ps">public string specified in the setup</param>
         /// <param name="key">Public key used</param>
-        /// <param name="keySize">The size of the RSA key in bits</param>
-        /// <param name="rhoValues">List of the resulting rho values</param>
-        internal static void getRhos(int m2, string pks, RsaPubKey key, int keySize, out byte[][] rhoValues)
+        /// <param name="keyLength">The size of the RSA key in bits</param>
+        internal static void getRhos(int m2, string ps, RsaPubKey key, int keyLength, out byte[][] rhoValues)
         {
             var m2Len = Utils.getOctetLen(m2);
             rhoValues = new byte[m2][];
@@ -164,7 +161,7 @@ namespace TumbleBitSetup
             // ASN.1 encoding of the PublicKey
             var keyBytes = key.ToBytes();
             // Byte representation of "public string"
-            var psBytes = Strings.ToByteArray(pks);
+            var psBytes = Strings.ToByteArray(ps);
 
             for (int i = 0; i < m2; i++)
             {
@@ -180,7 +177,7 @@ namespace TumbleBitSetup
                     // Combine PK with the rest of the string
                     var combined = Utils.Combine(keyBytes, Utils.Combine(psBytes,Utils.Combine(EI, EJ)));
                     // Pass the bytes to H_1
-                    byte[] ER = Utils.MGF1_SHA256(combined, keySize);
+                    byte[] ER = Utils.MGF1_SHA256(combined, keyLength);
                     // Convert from Bytes to BigInteger
                     BigInteger input = Utils.OS2IP(ER);
                     // Check if the output is bigger or equal than N

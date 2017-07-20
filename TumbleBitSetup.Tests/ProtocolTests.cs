@@ -28,6 +28,23 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
+        public void PS_ProvingAndVerifyingTest()
+        {
+            // Sanity check
+            var keyPair = new RsaKey(Exp, keySize);
+
+            var privKey = keyPair._privKey;
+            var pubKey = new RsaPubKey(keyPair);
+
+            var outputTuple = PoupardStern.Proving(privKey.P, privKey.Q, privKey.PublicExponent);
+            var xValues = outputTuple.Item1;
+            var y = outputTuple.Item2;
+
+            Assert.IsTrue(PoupardStern.Verifying(pubKey, xValues, y, keySize));
+        }
+
+
+        [TestMethod()]
         public void DiffrentNTest()
         {
             // Modulus that is different than the one the verifier uses

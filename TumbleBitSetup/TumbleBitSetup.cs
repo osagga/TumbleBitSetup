@@ -161,19 +161,21 @@ namespace TumbleBitSetup
             rhoValues = new byte[m2][];
             BigInteger Modulus = key._pubKey.Modulus;
 
+            // ASN.1 encoding of the PublicKey
+            var keyBytes = key.ToBytes();
+            // Byte representation of "public string"
+            var psBytes = Strings.ToByteArray(pks);
+
             for (int i = 0; i < m2; i++)
             {
+                // Byte representation of i
+                var EI = Utils.I2OSP(i, m2Len);
                 int j = 2;
                 while (true)
                 {
                     // OctetLength of j
                     var jLen = Utils.getOctetLen(j);
-                    // ASN.1 encoding of the PublicKey
-                    var keyBytes = key.ToBytes();
-                    // Byte representation of "public string"
-                    var psBytes = Strings.ToByteArray(pks);
-                    // Byte representation of (i, j)
-                    var EI = Utils.I2OSP(i, m2Len);
+                    // Byte representation of j
                     var EJ = Utils.I2OSP(j, jLen);
                     // Combine PK with the rest of the string
                     var combined = Utils.Combine(keyBytes, Utils.Combine(psBytes,Utils.Combine(EI, EJ)));

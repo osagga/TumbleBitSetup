@@ -68,6 +68,7 @@
     <Compile Include="RsaKey.cs" />
     <Compile Include="RsaPubKey.cs" />
     <Compile Include="TumbleBitSetup.cs" />
+	<Compile Include="PoupardStern.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

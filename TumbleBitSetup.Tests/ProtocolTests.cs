@@ -83,7 +83,7 @@ namespace TumbleBitSetup.Tests
         [TestMethod()]
         public void test_I2OSP_l()
         {
-            // Test if we can encode and decode successfully.
+            // Test if we can encode and decode successfully (Int Type).
             int size = 10;
 
             for (int i = 100; i < 10000; i++)
@@ -97,8 +97,25 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(ArithmeticException))]
         public void test_I2OSP_2()
+        {
+            // Test if we can encode and decode successfully (BigInteger Type).
+            int size = 10;
+            for (int i = 100; i < 10000; i++)
+            {
+
+                var randInt = TestUtils.GenRandomInt(50, true, false);
+                byte[] encoded = Utils.I2OSP(randInt, size);
+                BigInteger decoded = Utils.OS2IP(encoded);
+
+                Assert.AreEqual(decoded, randInt);
+            }
+
+        }
+
+        [TestMethod()]
+        [ExpectedException(typeof(ArithmeticException))]
+        public void test_I2OSP_3()
         {
             // Test if size is smaller than needed.
             // Should give a ArithmeticException.

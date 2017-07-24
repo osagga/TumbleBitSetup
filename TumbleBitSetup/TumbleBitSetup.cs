@@ -154,7 +154,7 @@ namespace TumbleBitSetup
         /// <param name="keyLength">The size of the RSA key in bits</param>
         internal static void getRhos(int m2, string ps, RsaPubKey key, int keyLength, out byte[][] rhoValues)
         {
-            var m2Len = Utils.getOctetLen(m2);
+            var m2Len = Utils.GetOctetLen(m2);
             rhoValues = new byte[m2][];
             BigInteger Modulus = key._pubKey.Modulus;
 
@@ -171,7 +171,7 @@ namespace TumbleBitSetup
                 while (true)
                 {
                     // OctetLength of j
-                    var jLen = Utils.getOctetLen(j);
+                    var jLen = Utils.GetOctetLen(j);
                     // Byte representation of j
                     var EJ = Utils.I2OSP(j, jLen);
                     // Combine PK with the rest of the string

@@ -48,7 +48,7 @@ namespace TumbleBitSetup
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        internal static int getOctetLen(int x)
+        internal static int GetOctetLen(int x)
         {
             return (int)Math.Ceiling((1.0 / 8.0) * Math.Log(x, 2));
         }
@@ -203,7 +203,7 @@ namespace TumbleBitSetup
         /// <param name="srcArray"></param>
         /// <param name="k"> Amount of bits to truncate</param>
         /// <returns>byteArray with k-bits</returns>
-        internal static byte[] truncateKbits(byte[] srcArray, int k)
+        internal static byte[] TruncateKbits(byte[] srcArray, int k)
         {
             // Number of bytes needed to represent k bits
             int nBytes = GetByteLength(k);

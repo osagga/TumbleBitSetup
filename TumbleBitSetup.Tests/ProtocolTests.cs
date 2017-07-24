@@ -68,12 +68,12 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
-        public void DiffrentM1M2Test()
+        public void DiffrentAlphaTest()
         {
             // Changing alpha such that m1 doesn't equal m2
             var Exp = new BigInteger("65537");
             var alpha = 7649; //Page 6 of the setup protocol.
-            
+
             var keyPair = new RsaKey(Exp, keySize);
 
             var privKey = keyPair._privKey;

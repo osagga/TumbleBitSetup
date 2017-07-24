@@ -205,22 +205,34 @@ namespace TumbleBitSetup
         /// <returns>byteArray with k-bits</returns>
         internal static byte[] truncateKbits(byte[] srcArray, int k)
         {
-            var BitsPerByte = 8;
+            // Number of bytes needed to represent k bits
+            int nBytes = GetByteLength(k);
 
-            // Number of bytes needed for k bits (from BouncyCastle, BigInteger.cs #L244)
-            int nBytes = (k + BitsPerByte - 1) / BitsPerByte;
-
+            // Initialize an output array 
             byte[] dstArray = new byte[nBytes];
 
             // Fill dstArray with the first nBytes of srcArray
             System.Buffer.BlockCopy(srcArray, 0, dstArray, 0, nBytes);
 
-            // strip off any excess bits in the MSB of dstArray (from BouncyCastle, BigInteger.cs #L652)
-            int xBits = BitsPerByte * nBytes - k;
-            dstArray[0] &= (byte)(255U >> xBits);
+            // strip off any excess bits in the MSB (from BouncyCastle, BigInteger.cs #L652)
+            int xBits = (8 * nBytes) - k;
+            var mask = (byte)(255U >> xBits);
+            dstArray[0] &= mask;
 
             return dstArray;
+        }
 
+        /// <summary>
+        /// Returns the amount of bytes needed to represent the given bits
+        /// </summary>
+        /// <param name="nBits">Number of Bits</param>
+        /// <returns></returns>
+        internal static int GetByteLength(
+            int nBits)
+        {
+            // from BouncyCastle, BigInteger.cs #L244
+            int BitsPerByte = 8;
+            return (nBits + BitsPerByte - 1) / BitsPerByte;
         }
     }
 }

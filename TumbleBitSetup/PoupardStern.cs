@@ -191,8 +191,8 @@ namespace TumbleBitSetup
             // Byte representation of "public string"
             var psBytes = Strings.ToByteArray(ps);
             // Encoding of the x_0
-            var ExLen = (1 / 8) * keyLength; // This assumes that |N| is 8 * x, should we add ceiling here?
-            var Ex_0 = Utils.I2OSP(xValues[0], ExLen); // This assumes that we'll have at least one x Value, it could raise an "IndexOutOfRange" Error on empty list.
+            var ExLen = Utils.GetByteLength(keyLength);
+            var Ex_0 = Utils.I2OSP(xValues[0], ExLen);
             // Encoding the rest of the x Values
             var BigK = xValues.Length;
             byte[] ExComb = Ex_0;

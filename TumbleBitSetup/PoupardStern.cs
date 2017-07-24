@@ -184,6 +184,8 @@ namespace TumbleBitSetup
         /// <param name="keyLength">The size of the RSA key in bits</param>
         internal static void getW(RsaPubKey pubKey, string ps, BigInteger[] xValues, int k, int keyLength, out BigInteger w)
         {
+            // TODO: Add check for xValues if empty.
+
             // ASN.1 encoding of the PublicKey
             var keyBytes = pubKey.ToBytes();
             // Byte representation of "public string"
@@ -228,17 +230,14 @@ namespace TumbleBitSetup
         /// <param name="BitLength">The size of the RSA key in bits</param>
         internal static void getR(int keyLength, out BigInteger r)
         {
-            // !DOESN'T WORK FOR NOW!
-
             // Initialize a cryptographic randomness.
             SecureRandom random = new SecureRandom();
 
-            // This is a huge number! Can't create a byte array that huge.
-            // Doesn't work for now, need to think about it.
-            BigInteger bitSize = BigInteger.Two.Pow(keyLength - 1);
+            // bitLength of r.
+            int bitSize = keyLength - 1;
 
-            // Doesn't work for now.
-            r = new BigInteger(System.Int32.MaxValue, random);
+            // Generate random number.
+            r = new BigInteger(bitSize, random);
 
             return;
         }

@@ -214,11 +214,6 @@ namespace TumbleBitSetup
             // Fill dstArray with the first nBytes of srcArray
             System.Buffer.BlockCopy(srcArray, 0, dstArray, 0, nBytes);
 
-            // strip off any excess bits in the MSB (from BouncyCastle, BigInteger.cs #L652)
-            int xBits = (8 * nBytes) - k;
-            var mask = (byte)(255U >> xBits);
-            dstArray[0] &= mask;
-
             return dstArray;
         }
 
@@ -227,8 +222,7 @@ namespace TumbleBitSetup
         /// </summary>
         /// <param name="nBits">Number of Bits</param>
         /// <returns></returns>
-        internal static int GetByteLength(
-            int nBits)
+        internal static int GetByteLength(int nBits)
         {
             // from BouncyCastle, BigInteger.cs #L244
             int BitsPerByte = 8;

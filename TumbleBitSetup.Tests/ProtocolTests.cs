@@ -1,6 +1,7 @@
 ﻿using Org.BouncyCastle.Math;
 using System;
 using System.Linq;
+using Org.BouncyCastle.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TumbleBitSetup.Tests
@@ -12,6 +13,7 @@ namespace TumbleBitSetup.Tests
         public int alpha = 41;
         public int keySize = 2048;
         public BigInteger Exp = BigInteger.Three;
+        public byte[] ps = Strings.ToByteArray("public string");
 
         [TestMethod()]
         public void ProvingAndVerifyingTest()
@@ -22,9 +24,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
 
-            Assert.IsTrue(PermutationTest.Verifying(pubKey, signature, alpha, keySize));
+            Assert.IsTrue(PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps));
         }
 
         [TestMethod()]
@@ -36,13 +38,12 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            var outputTuple = PoupardStern.Proving(privKey.P, privKey.Q, privKey.PublicExponent);
+            var outputTuple = PoupardStern.Proving(privKey.P, privKey.Q, privKey.PublicExponent, ps);
             var xValues = outputTuple.Item1;
             var y = outputTuple.Item2;
 
-            Assert.IsTrue(PoupardStern.Verifying(pubKey, xValues, y, keySize));
+            Assert.IsTrue(PoupardStern.Verifying(pubKey, xValues, y, keySize, ps));
         }
-
 
         [TestMethod()]
         public void DiffrentNTest()
@@ -59,8 +60,8 @@ namespace TumbleBitSetup.Tests
             // The different public key to be used in verifying.
             var secPubKey = new RsaPubKey(diffKey);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
-            Assert.IsFalse(PermutationTest.Verifying(secPubKey, signature, alpha, keySize));
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
+            Assert.IsFalse(PermutationTest.Verifying(secPubKey, signature, alpha, keySize, ps));
         }
 
         [TestMethod()]
@@ -78,8 +79,25 @@ namespace TumbleBitSetup.Tests
             // The different public key to be used in verifying.
             var secPubKey = new RsaPubKey(diffKey);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
-            Assert.IsFalse(PermutationTest.Verifying(secPubKey, signature, alpha, keySize));
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
+            Assert.IsFalse(PermutationTest.Verifying(secPubKey, signature, alpha, keySize, ps));
+        }
+
+        [TestMethod()]
+        public void DiffrentAlphaTest()
+        {
+            // Changing alpha such that m1 doesn't equal m2
+            var Exp = new BigInteger("65537");
+            var alpha = 7649; //Page 6 of the setup protocol.
+
+            var keyPair = new RsaKey(Exp, keySize);
+
+            var privKey = keyPair._privKey;
+            var pubKey = new RsaPubKey(keyPair);
+
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
+
+            Assert.IsTrue(PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps));
         }
 
         [TestMethod()]
@@ -92,8 +110,8 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
-            Assert.IsTrue(PermutationTest.Verifying(pubKey, signature, alpha, keySize));
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
+            Assert.IsTrue(PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps));
         }
 
         [TestMethod()]
@@ -150,9 +168,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
             // The keySize that was passed is 2048
-            Assert.IsFalse(PermutationTest.Verifying(pubKey, signature, alpha, 2048));
+            Assert.IsFalse(PermutationTest.Verifying(pubKey, signature, alpha, 2048, ps));
         }
 
         [TestMethod()]
@@ -173,9 +191,9 @@ namespace TumbleBitSetup.Tests
             var pubKey = new RsaPubKey(privKey.Modulus, BigInteger.ValueOf(6));
 
             // Using the "normal" key to make signatures
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
             // Passing the modified publicKey to verify.
-            Assert.IsFalse(PermutationTest.Verifying(pubKey, signature, alpha, keySize));
+            Assert.IsFalse(PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps));
         }
 
         [TestMethod()]
@@ -217,9 +235,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
 
-            Assert.IsFalse(PermutationTest.Verifying(pubKey, signature, alpha, keySize));
+            Assert.IsFalse(PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps));
         }
 
         [TestMethod()]
@@ -245,9 +263,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
 
-            Assert.IsFalse(PermutationTest.Verifying(pubKey, signature, alpha, keySize));
+            Assert.IsFalse(PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps));
         }
 
         [TestMethod()]
@@ -273,9 +291,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
 
-            Assert.IsFalse(PermutationTest.Verifying(pubKey, signature, alpha, keySize));
+            Assert.IsFalse(PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps));
         }
 
         [TestMethod()]
@@ -305,9 +323,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
 
-            Assert.IsFalse(PermutationTest.Verifying(pubKey, signature, alpha, keySize));
+            Assert.IsFalse(PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps));
         }
 
         [TestMethod()]
@@ -334,9 +352,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
 
-            Assert.IsTrue(PermutationTest.Verifying(pubKey, signature, alpha, keySize));
+            Assert.IsTrue(PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps));
         }
 
         [TestMethod()]

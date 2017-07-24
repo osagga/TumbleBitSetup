@@ -49,8 +49,13 @@ namespace TumbleBitSetup
             // Generate K
             GetK(k, out int BigK);
 
-            // Initialize list of x values
+            // Initialize list of x and z values
             BigInteger[] xValues = new BigInteger[BigK];
+            BigInteger[] zValues = new BigInteger[BigK];
+
+            // Generate the list of z Values
+            for (int i = 0; i < BigK; i++)
+                zValues[i] =  SampleFromZnStar(pubKey, ps, i, k, ModulusBitLength);
 
             for (;;)
             {
@@ -58,12 +63,8 @@ namespace TumbleBitSetup
                 GetR(ModulusBitLength, out BigInteger r);
 
                 for (int i = 0; i < BigK; i++)
-                {
-                    // Generate z_i
-                    BigInteger z_i = SampleFromZnStar(pubKey, ps, i, k, ModulusBitLength);
                     // Compute x_i
-                    xValues[i] = z_i.ModPow(r, Modulus);
-                }
+                    xValues[i] = zValues[i].ModPow(r, Modulus);
 
                 // Compute w
                 GetW(pubKey, ps, xValues, k, ModulusBitLength, out BigInteger w);
@@ -103,11 +104,11 @@ namespace TumbleBitSetup
             var Exponent = pubKey._pubKey.Exponent;
 
             // Checking that:
-            // if y >= 2^{ |N| - 1 }
-            if (y.BitLength != keyLength)  
+            // if y < 2^{ |N| - 1 }
+            if (!(y.CompareTo(lowerLimit) < 0))  
                 return false;
             // if y < 0
-            if (y.CompareTo(BigInteger.Zero) < 0)
+            if (!(y.CompareTo(BigInteger.Zero) >= 0))
                 return false;
             // if N > 2^{KeySize-1}
             if (!(Modulus.CompareTo(lowerLimit) > 0))
@@ -126,7 +127,6 @@ namespace TumbleBitSetup
             // Computing rPrime
             rPrime = y.Subtract(Modulus.Multiply(w)); // Not clear if we should multiply N with W
 
-
             // Encrypting and verifying the signatures
             for (int i = 0; i < BigK; i++)
             {
@@ -134,7 +134,7 @@ namespace TumbleBitSetup
                 // Compute right side of the equality
                 var rs = z_i.ModPow(rPrime, Modulus);
                 // If the two sides are not equal
-                if (xValues[i].CompareTo(rs) != 0)
+                if (!(xValues[i].CompareTo(rs) == 0))
                     return false;
             }
             return true;
@@ -242,7 +242,15 @@ namespace TumbleBitSetup
             SecureRandom random = new SecureRandom();
 
             // bitLength of r.
-            int bitSize = keyLength - 1;
+            int upperLimit = keyLength - 1;
+            int bitSize = 0;
+
+            for (;;)
+            {
+                bitSize = random.NextInt();
+                if (bitSize < upperLimit && bitSize > 0)
+                    break;
+            }
 
             // Generate random number.
             r = new BigInteger(bitSize, random);

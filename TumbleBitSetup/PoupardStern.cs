@@ -47,7 +47,7 @@ namespace TumbleBitSetup
                 throw new ArgumentOutOfRangeException("Bad RSA modulus N");
 
             // Generate K
-            GetK(k, Modulus, out int BigK);
+            GetK(k, out int BigK);
 
             // Initialize list of x values
             BigInteger[] xValues = new BigInteger[BigK];
@@ -114,7 +114,7 @@ namespace TumbleBitSetup
                 return false;
 
             // Computing K
-            GetK(k, Modulus, out int BigK);
+            GetK(k, out int BigK);
 
             // Check if the number of x_values is not equal to K
             if (xValues.Length != BigK)
@@ -152,9 +152,10 @@ namespace TumbleBitSetup
         internal static BigInteger SampleFromZnStar(RsaPubKey pubKey, string ps, int i, int k, int keyLength)
         {
             BigInteger Modulus = pubKey._pubKey.Modulus;
-            int j = 2; // We might need to modify this (check #1)
+            GetK(k, out int BigK); // I think it would be more efficient to calculate K once outside this function.
+            int j = 2;
             // Octet Length of i
-            int iLen = (int) Math.Ceiling( (1.0 / 8.0) * Math.Log( k + Math.Log( keyLength, 2.0), 2.0) );
+            int iLen = Utils.GetByteLength(BigK);
             // Byte representation of i
             var EI = Utils.I2OSP(i, iLen);
             // ASN.1 encoding of the PublicKey
@@ -225,11 +226,9 @@ namespace TumbleBitSetup
         /// Calculates the value of K as specified in the equation 6 in the setup
         /// </summary>
         /// <param name="k">Security parameter specified in the setup</param>
-        /// <param name="N">RSA Modulus</param>
-        internal static void GetK(int k, BigInteger N, out int BigK)
+        internal static void GetK(int k, out int BigK)
         {
-            double p1 = k + Math.Log(N.BitLength, 2.0);
-            BigK = (int)Math.Ceiling(p1);
+            BigK = k + 1;
             return;
         }
 

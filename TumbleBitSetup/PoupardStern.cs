@@ -36,11 +36,11 @@ namespace TumbleBitSetup
             BigInteger lowerLimit = Two.Pow(ModulusBitLength - 1);
 
             // Check that N>2^{|N|-1}
-            if (Modulus.CompareTo(lowerLimit) <= 0)
+            if (!(Modulus.CompareTo(lowerLimit) > 0))
                 throw new ArgumentOutOfRangeException("Bad RSA modulus N");
 
-            // (N-(p-1)(q-1))*2^\kappa >> N
-            if (Modulus.Subtract(phi).Multiply(Two.Pow(k)).CompareTo(Modulus) <= 0) // Needs to verify if ">>" or "<<"
+            // (N-(p-1)(q-1))*2^\kappa << N
+            if (!(Modulus.Subtract(phi).Multiply(Two.Pow(k)).CompareTo(Modulus) < 0))
                 throw new ArgumentOutOfRangeException("Bad RSA modulus N");
 
             // Generate K (needs to be fixed)

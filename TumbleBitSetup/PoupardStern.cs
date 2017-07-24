@@ -19,8 +19,8 @@ namespace TumbleBitSetup
         /// <returns>List of x values and y</returns>
         public static Tuple<BigInteger[], BigInteger> Proving(BigInteger p, BigInteger q, BigInteger e, string ps = "public string", int k = 128)
         {
-            int BigK;
-            BigInteger r, w, y;
+            BigInteger y;
+            BigInteger Two = BigInteger.Two;
 
             // Generate a keyPair from p, q and e
             var keyPair = new RsaKey(p, q, e);
@@ -30,11 +30,21 @@ namespace TumbleBitSetup
 
             BigInteger Modulus = pubKey._pubKey.Modulus;
             int ModulusBitLength = Modulus.BitLength;
-            BigInteger upperLimit = BigInteger.Two.Pow(ModulusBitLength - 1);
+            BigInteger pSub1 = p.Subtract(BigInteger.One);
+            BigInteger qSub1 = q.Subtract(BigInteger.One);
+            BigInteger phi = pSub1.Multiply(qSub1);
+            BigInteger lowerLimit = Two.Pow(ModulusBitLength - 1);
 
+            // Check that N>2^{|N|-1}
+            if (Modulus.CompareTo(lowerLimit) <= 0)
+                throw new ArgumentOutOfRangeException("Bad RSA modulus N");
+
+            // (N-(p-1)(q-1))*2^\kappa >> N
+            if (Modulus.Subtract(phi).Multiply(Two.Pow(k)).CompareTo(Modulus) <= 0) // Needs to verify if ">>" or "<<"
+                throw new ArgumentOutOfRangeException("Bad RSA modulus N");
 
             // Generate K (needs to be fixed)
-            getK(k, Modulus, out BigK);
+            getK(k, Modulus, out int BigK);
 
             // Initialize list of x values
             BigInteger[] xValues = new BigInteger[BigK];
@@ -42,7 +52,7 @@ namespace TumbleBitSetup
             for (;;)
             {
                 // Generate r
-                getR(ModulusBitLength, out r);
+                getR(ModulusBitLength, out BigInteger r);
 
                 for (int i = 0; i < BigK; i++)
                 {
@@ -53,13 +63,10 @@ namespace TumbleBitSetup
                 }
 
                 // Compute w
-                getW(pubKey, ps, xValues, k, ModulusBitLength, out w);
+                getW(pubKey, ps, xValues, k, ModulusBitLength, out BigInteger w);
 
                 // Compute y
-                BigInteger pSub1 = p.Subtract(BigInteger.One);
-                BigInteger qSub1 = q.Subtract(BigInteger.One);
-                BigInteger phi = pSub1.Multiply(qSub1);
-                // Make sure the n == N in step 5, page 12
+                // Make sure the n == N in step 5, page 14 (a typo probably)
                 y = r.Add(Modulus.Subtract(phi)).Multiply(w);
 
                 // if y >= 2^{ |N| - 1 }
@@ -88,8 +95,8 @@ namespace TumbleBitSetup
         /// <returns>true if the xValues verify, false otherwise</returns>
         public static bool Verifying(RsaPubKey pubKey, BigInteger[] xValues, BigInteger y, int keyLength, string ps = "public string", int k = 128)
         {
-            int BigK;
-            BigInteger w, rPrime;
+            BigInteger rPrime;
+            BigInteger lowerLimit = BigInteger.Two.Pow(keyLength - 1);
             var Modulus = pubKey._pubKey.Modulus;
             var Exponent = pubKey._pubKey.Exponent;
 
@@ -101,18 +108,18 @@ namespace TumbleBitSetup
             if (y.CompareTo(BigInteger.Zero) < 0)
                 return false;
             // if N > 2^{KeySize-1}
-            if (Modulus.BitLength != keyLength) // Step 2 wasn't clear if we should output INVALID for this case, but I assumed that we want N to be less that.
-                return false;
+            if (Modulus.CompareTo(lowerLimit) <= 0)
+                throw new ArgumentOutOfRangeException("Bad RSA modulus N");
 
             // Computing K
-            getK(k, Modulus, out BigK);
+            getK(k, Modulus, out int BigK);
 
             // Check if the number of x_values is not equal to K
             if (xValues.Length != BigK)
                 return false;
 
             // Get w
-            getW(pubKey, ps, xValues, k, keyLength, out w);
+            getW(pubKey, ps, xValues, k, keyLength, out BigInteger w);
 
             // Computing rPrime
             rPrime = y.Subtract(Modulus.Multiply(w)); // Not clear if we should multiply N with W

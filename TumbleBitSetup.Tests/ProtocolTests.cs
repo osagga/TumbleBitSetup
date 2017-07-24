@@ -79,9 +79,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+            byte[][] signature = TumbleBitSetup.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
 
-            Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
+            Assert.IsTrue(TumbleBitSetup.Verifying(pubKey, signature, alpha, keySize, ps));
         }
 
         [TestMethod()]

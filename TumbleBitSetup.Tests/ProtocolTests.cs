@@ -68,6 +68,23 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
+        public void DiffrentM1M2Test()
+        {
+            // Changing alpha such that m1 doesn't equal m2
+            var Exp = new BigInteger("65537");
+            var alpha = 7649; //Page 6 of the setup protocol.
+            
+            var keyPair = new RsaKey(Exp, keySize);
+
+            var privKey = keyPair._privKey;
+            var pubKey = new RsaPubKey(keyPair);
+
+            byte[][] signature = TumbleBitSetup.proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha);
+
+            Assert.IsTrue(TumbleBitSetup.verifying(pubKey, signature, alpha, keySize));
+        }
+
+        [TestMethod()]
         public void ShortKeySize()
         {
             // A case where keySize is 1024-bits long (Sanity check)

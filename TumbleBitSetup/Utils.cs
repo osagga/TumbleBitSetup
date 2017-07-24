@@ -18,14 +18,14 @@ namespace TumbleBitSetup
         /// <returns>Hashed result as a 256 Bytes array (2048 Bits)</returns>
         internal static byte[] MGF1_SHA256(byte[] data, int keySize)
         {
-            byte[] output = new byte[keySize/8];
+            byte[] output = new byte[keySize / 8];
             Sha256Digest sha256 = new Sha256Digest();
             var generator = new Mgf1BytesGenerator(sha256);
             generator.Init(new MgfParameters(data));
             generator.GenerateBytes(output, 0, output.Length);
             return output;
         }
-        
+
         /// <summary>
         /// Combines two ByteArrays
         /// </summary>
@@ -42,17 +42,17 @@ namespace TumbleBitSetup
 
             return combined;
         }
-        
+
         /// <summary>
         /// Returns how many Octets are needed to represent the integer x
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        internal static int getOctetLen(int x)
+        internal static int GetOctetLen(int x)
         {
             return (int)Math.Ceiling((1.0 / 8.0) * Math.Log(x, 2));
         }
-        
+
         /// <summary>
         /// Generates a list of primes up to and including the input bound
         /// </summary>
@@ -110,7 +110,40 @@ namespace TumbleBitSetup
                 outBytes[i] = (byte)(x % 256);
                 x /= 256;
             }
-            
+
+            // make sure the output is BigEndian
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(outBytes, 0, outBytes.Length);
+
+            return outBytes;
+        }
+
+        /// <summary>
+        /// converts a non-negative BigInteger to an octet string of a specified length.
+        /// </summary>
+        /// <param name="x">non-negative BigInteger</param>
+        /// <param name="xLen">specified length</param>
+        /// <returns></returns> 
+        internal static byte[] I2OSP(BigInteger x, int xLen)
+        {
+            byte[] outBytes = new byte[xLen];
+
+            var N256 = BigInteger.ValueOf(256);
+
+            if (x.CompareTo(BigInteger.Zero) < 0)
+                throw new ArgumentOutOfRangeException("only positive integers");
+
+            // checks If x >= 256^xLen
+            if (x.CompareTo(N256.Pow(xLen)) >= 0)
+                throw new ArithmeticException("integer too large");
+
+            // converts x to an unsigned byteArray.
+            for (int i = 0; (x.CompareTo(BigInteger.Zero) > 0) && (i < outBytes.Length); i++)
+            {
+                outBytes[i] = (byte)(x.Mod(N256).LongValue);
+                x = x.Divide(N256);
+            }
+
             // make sure the output is BigEndian
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(outBytes, 0, outBytes.Length);
@@ -123,7 +156,7 @@ namespace TumbleBitSetup
         /// </summary>
         /// <param name="x">Octet String</param>
         /// <returns></returns>
-        public static BigInteger OS2IP(byte[] x)
+        internal static BigInteger OS2IP(byte[] x)
         {
             int i;
 

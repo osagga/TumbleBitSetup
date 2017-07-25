@@ -22,6 +22,10 @@ namespace TumbleBitSetup
             k = Utils.GetByteLength(k) * 8;
             BigInteger y;
             BigInteger Two = BigInteger.Two;
+            // 2^{|N| - 1}
+            BigInteger lowerLimit = Two.Pow(keyLength - 1);
+            // 2^{|N|}
+            BigInteger upperLimit = Two.Pow(keyLength);
 
             // Generate a keyPair from p, q and e
             var keyPair = new RsaKey(p, q, e);
@@ -30,23 +34,24 @@ namespace TumbleBitSetup
 
             BigInteger Modulus = pubKey._pubKey.Modulus;
 
+            // Check if N <= 2^{|N|-1}
+            if (Modulus.CompareTo(lowerLimit) <= 0)
+                throw new ArgumentOutOfRangeException("Bad RSA modulus N");
+
+            // if N >= 2^{KeySize}
+            if (Modulus.CompareTo(upperLimit) >= 0)
+                throw new ArgumentOutOfRangeException("Bad RSA modulus N");
+
             // p and q don't produce a modulus N that has the expected bitLength
             if (!(Modulus.BitLength.Equals(keyLength)))
                 throw new ArgumentException("Bad RSA P and Q");
 
-            // Calculating 2^{|N| - 1}
-            BigInteger lowerLimit = Two.Pow(keyLength - 1);
-            
             // Calculating phi
             BigInteger pSub1 = p.Subtract(BigInteger.One);
             BigInteger qSub1 = q.Subtract(BigInteger.One);
             BigInteger phi = pSub1.Multiply(qSub1);
 
-            // Check if N <= 2^{|N|-1}
-            if (Modulus.CompareTo(lowerLimit) <= 0)
-                throw new ArgumentOutOfRangeException("Bad RSA modulus N");
-
-            // (N-phi)*2^k << N
+            // (N-phi)*2^k << N (needs fix)
             if (!(Modulus.Subtract(phi).Multiply(Two.Pow(k)).CompareTo(Modulus) < 0))
                 throw new ArgumentOutOfRangeException("Bad RSA modulus N");
 
@@ -104,6 +109,8 @@ namespace TumbleBitSetup
             k = Utils.GetByteLength(k) * 8;
             BigInteger rPrime;
             BigInteger lowerLimit = BigInteger.Two.Pow(keyLength - 1);
+            BigInteger upperLimit = BigInteger.Two.Pow(keyLength);
+
             var Modulus = pubKey._pubKey.Modulus;
             var Exponent = pubKey._pubKey.Exponent;
 
@@ -116,6 +123,9 @@ namespace TumbleBitSetup
                 return false;
             // if N <= 2^{KeySize-1}
             if (Modulus.CompareTo(lowerLimit) <= 0)
+                return false;
+            // if N >= 2^{KeySize}
+            if (Modulus.CompareTo(upperLimit) >= 0)
                 return false;
 
             // Computing K

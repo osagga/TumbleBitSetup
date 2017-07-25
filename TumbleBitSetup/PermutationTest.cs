@@ -65,11 +65,18 @@ namespace TumbleBitSetup
         /// <returns> true if the signatures verify, false otherwise</returns>
         public static bool Verifying(RsaPubKey pubKey, byte[][] sigs, int alpha, int keyLength, byte[] psBytes, int k = 128)
         {
+            BigInteger Two = BigInteger.Two;
             var Modulus = pubKey._pubKey.Modulus;
             var Exponent = pubKey._pubKey.Exponent;
+            BigInteger lowerLimit = Two.Pow(keyLength - 1);
+            BigInteger upperLimit = Two.Pow(keyLength);
 
-            // Checking that N > 2^{keyLength-1}
-            if (!(Modulus.BitLength == keyLength))
+            // if N < 2^{KeySize-1}
+            if (Modulus.CompareTo(lowerLimit) < 0)
+                return false;
+
+            // if N > 2^{KeySize}
+            if (Modulus.CompareTo(upperLimit) > 0)
                 return false;
 
             // Generate m1 and m2

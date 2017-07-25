@@ -205,16 +205,15 @@ namespace TumbleBitSetup
             // ASN.1 encoding of the PublicKey
             var keyBytes = pubKey.ToBytes();
 
-            // Encoding of the x_0
+            // Computing ExLen
             var ExLen = Utils.GetByteLength(keyLength);
-            var Ex_0 = Utils.I2OSP(xValues[0], ExLen);
-            byte[] ExComb = Ex_0;
-            // Encoding the rest of the x Values
-            for (int i = 1; i < BigK; i++)
+
+            // Encoding the x Values
+            byte[] ExComb = new byte[0]; // Empty Array (Initialization)
+            for (int i = 0; i < BigK; i++)
             {
                 var tmp = Utils.I2OSP(xValues[i], ExLen);
                 ExComb = Utils.Combine(ExComb, tmp);
-                Ex_0 = ExComb;
             }
             // Concatenating the rest of s
             var s = Utils.Combine(keyBytes, Utils.Combine(psBytes, ExComb));

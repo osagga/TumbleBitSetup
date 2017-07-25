@@ -42,8 +42,8 @@ namespace TumbleBitSetup
             BigInteger qSub1 = q.Subtract(BigInteger.One);
             BigInteger phi = pSub1.Multiply(qSub1);
 
-            // Check that N > 2^{|N|-1}
-            if (!(Modulus.CompareTo(lowerLimit) > 0))
+            // Check if N <= 2^{|N|-1}
+            if (Modulus.CompareTo(lowerLimit) <= 0)
                 throw new ArgumentOutOfRangeException("Bad RSA modulus N");
 
             // (N-phi)*2^k << N
@@ -108,21 +108,21 @@ namespace TumbleBitSetup
             var Exponent = pubKey._pubKey.Exponent;
 
             // Checking that:
-            // if y < 2^{ |N| - 1 }
-            if (!(y.CompareTo(lowerLimit) < 0))  
+            // if y >= 2^{ |N| - 1 }
+            if (y.CompareTo(lowerLimit) >= 0)  
                 return false;
-            // if y >= 0
-            if (!(y.CompareTo(BigInteger.Zero) >= 0))
+            // if y < 0
+            if (y.CompareTo(BigInteger.Zero) < 0)
                 return false;
-            // if N > 2^{KeySize-1}
-            if (!(Modulus.CompareTo(lowerLimit) > 0))
+            // if N <= 2^{KeySize-1}
+            if (Modulus.CompareTo(lowerLimit) <= 0)
                 return false;
 
             // Computing K
             GetK(k, out int BigK);
 
             // Check if the number of x_values is not equal to K
-            if (!(xValues.Length == BigK))
+            if (xValues.Length != BigK)
                 return false;
 
             // Get w

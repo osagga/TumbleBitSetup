@@ -38,7 +38,7 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            var outputTuple = PoupardStern.Proving(privKey.P, privKey.Q, privKey.PublicExponent, ps);
+            var outputTuple = PoupardStern.Proving(privKey.P, privKey.Q, privKey.PublicExponent, keySize, ps);
             var xValues = outputTuple.Item1;
             var y = outputTuple.Item2;
 

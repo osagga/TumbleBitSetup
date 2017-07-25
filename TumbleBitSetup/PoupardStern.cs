@@ -17,7 +17,7 @@ namespace TumbleBitSetup
         /// <param name="ps">The public string from the setup</param>
         /// <param name="k">Security parameter as specified in the setup.</param>
         /// <returns>List of x values and y</returns>
-        public static Tuple<BigInteger[], BigInteger> Proving(BigInteger p, BigInteger q, BigInteger e, byte[] psBytes, int k = 128)
+        public static Tuple<BigInteger[], BigInteger> Proving(BigInteger p, BigInteger q, BigInteger e, int keyLength, byte[] psBytes, int k = 128)
         {
             k = Utils.GetByteLength(k) * 8;
             BigInteger y;
@@ -29,10 +29,13 @@ namespace TumbleBitSetup
             var secKey = keyPair._privKey;
 
             BigInteger Modulus = pubKey._pubKey.Modulus;
-            int ModulusBitLength = Modulus.BitLength;
+
+            // p and q don't produce a modulus N that has the expected bitLength
+            if (!(Modulus.BitLength.Equals(keyLength)))
+                throw new ArgumentException("Bad RSA P and Q");
 
             // Calculating 2^{ |N| - 1}
-            BigInteger lowerLimit = Two.Pow(ModulusBitLength - 1);
+            BigInteger lowerLimit = Two.Pow(keyLength - 1);
             
             // Calculating phi
             BigInteger pSub1 = p.Subtract(BigInteger.One);
@@ -56,19 +59,19 @@ namespace TumbleBitSetup
 
             // Generate the list of z Values
             for (int i = 0; i < BigK; i++)
-                zValues[i] =  SampleFromZnStar(pubKey, psBytes, i, BigK, ModulusBitLength);
+                zValues[i] =  SampleFromZnStar(pubKey, psBytes, i, BigK, keyLength);
 
             for (;;)
             {
                 // Generate r
-                GetR(ModulusBitLength, out BigInteger r);
+                GetR(keyLength, out BigInteger r);
 
                 for (int i = 0; i < BigK; i++)
                     // Compute x_i
                     xValues[i] = zValues[i].ModPow(r, Modulus);
 
                 // Compute w
-                GetW(pubKey, psBytes, xValues, k, ModulusBitLength, out BigInteger w);
+                GetW(pubKey, psBytes, xValues, k, keyLength, out BigInteger w);
 
                 // Compute y
                 // Make sure the n == N in step 5, page 14 (a typo probably)

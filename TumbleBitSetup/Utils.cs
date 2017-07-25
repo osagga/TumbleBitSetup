@@ -19,7 +19,7 @@ namespace TumbleBitSetup
         /// <returns>Hashed result as a 256 Bytes array (2048 Bits)</returns>
         internal static byte[] MGF1_SHA256(byte[] data, int keySize)
         {
-            byte[] output = new byte[keySize/8];
+            byte[] output = new byte[GetByteLength(keySize)];
             Sha256Digest sha256 = new Sha256Digest();
             var generator = new Mgf1BytesGenerator(sha256);
             generator.Init(new MgfParameters(data));
@@ -32,9 +32,9 @@ namespace TumbleBitSetup
         /// </summary>
         /// <param name="arrays">List of arrays to combine</param>
         /// <returns>The resultant combined list</returns>
-        // From NTumbleBit https://github.com/NTumbleBit/NTumbleBit/blob/master/NTumbleBit/Utils.cs#L61
         internal static byte[] Combine(params byte[][] arrays)
         {
+            // From NTumbleBit https://github.com/NTumbleBit/NTumbleBit/blob/master/NTumbleBit/Utils.cs#L61
             var len = arrays.Select(a => a.Length).Sum();
             int offset = 0;
             var combined = new byte[len];

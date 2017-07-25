@@ -34,7 +34,7 @@ namespace TumbleBitSetup
             if (!(Modulus.BitLength.Equals(keyLength)))
                 throw new ArgumentException("Bad RSA P and Q");
 
-            // Calculating 2^{ |N| - 1}
+            // Calculating 2^{|N| - 1}
             BigInteger lowerLimit = Two.Pow(keyLength - 1);
             
             // Calculating phi
@@ -42,7 +42,7 @@ namespace TumbleBitSetup
             BigInteger qSub1 = q.Subtract(BigInteger.One);
             BigInteger phi = pSub1.Multiply(qSub1);
 
-            // Check that N>2^{|N|-1}
+            // Check that N > 2^{|N|-1}
             if (!(Modulus.CompareTo(lowerLimit) > 0))
                 throw new ArgumentOutOfRangeException("Bad RSA modulus N");
 
@@ -74,7 +74,6 @@ namespace TumbleBitSetup
                 GetW(pubKey, psBytes, xValues, k, keyLength, out BigInteger w);
 
                 // Compute y
-                // Make sure the n == N in step 5, page 14 (a typo probably)
                 y = r.Add(Modulus.Subtract(phi)).Multiply(w);
 
                 // if y >= 2^{ |N| - 1 }
@@ -130,7 +129,7 @@ namespace TumbleBitSetup
             GetW(pubKey, psBytes, xValues, k, keyLength, out BigInteger w);
 
             // Computing rPrime
-            rPrime = y.Subtract(Modulus.Multiply(w)); // Not clear if we should multiply N with W
+            rPrime = y.Subtract(Modulus.Multiply(w));
 
             // Encrypting and verifying the signatures
             for (int i = 0; i < BigK; i++)
@@ -173,9 +172,9 @@ namespace TumbleBitSetup
                 // Byte representation of j
                 var EJ = Utils.I2OSP(j, jLen);
                 // Combine EJ with the rest of the string
-                combined = Utils.Combine(combined, EJ);
+                var sub_combined = Utils.Combine(combined, EJ);
                 // Pass the bytes to H_1
-                byte[] ER = Utils.MGF1_SHA256(combined, keyLength);
+                byte[] ER = Utils.MGF1_SHA256(sub_combined, keyLength);
                 // Convert from Bytes to BigInteger
                 BigInteger z_i = Utils.OS2IP(ER);
                 // Check if the output is larger or equal to N OR GCD(z_i, N) != 1

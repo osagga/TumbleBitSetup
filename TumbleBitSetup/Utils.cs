@@ -3,6 +3,7 @@ using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Math;
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -25,24 +26,26 @@ namespace TumbleBitSetup
             generator.GenerateBytes(output, 0, output.Length);
             return output;
         }
-        
+
         /// <summary>
-        /// Combines two ByteArrays
+        /// Combines two or more byteArrays
         /// </summary>
-        /// <param name="arr1">First array</param>
-        /// <param name="arr2">Second array</param>
+        /// <param name="arrays">List of arrays to combine</param>
         /// <returns>The resultant combined list</returns>
-        internal static byte[] Combine(byte[] arr1, byte[] arr2)
+        // From NTumbleBit https://github.com/NTumbleBit/NTumbleBit/blob/master/NTumbleBit/Utils.cs#L61
+        internal static byte[] Combine(params byte[][] arrays)
         {
-            var len = arr1.Length + arr2.Length;
+            var len = arrays.Select(a => a.Length).Sum();
+            int offset = 0;
             var combined = new byte[len];
-
-            System.Buffer.BlockCopy(arr1, 0, combined, 0, arr1.Length);
-            System.Buffer.BlockCopy(arr2, 0, combined, arr1.Length, arr2.Length);
-
+            foreach (var array in arrays)
+            {
+                Array.Copy(array, 0, combined, offset, array.Length);
+                offset += array.Length;
+            }
             return combined;
         }
-        
+
         /// <summary>
         /// Returns how many Octets are needed to represent the integer x
         /// </summary>

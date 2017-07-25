@@ -173,9 +173,9 @@ namespace TumbleBitSetup
                     // Byte representation of j
                     var EJ = Utils.I2OSP(j, jLen);
                     // Combine EJ with the rest of the string
-                    combined = Utils.Combine(combined, EJ);
+                    var sub_combined = Utils.Combine(combined, EJ);
                     // Pass the bytes to H_1
-                    byte[] ER = Utils.MGF1_SHA256(combined, keyLength);
+                    byte[] ER = Utils.MGF1_SHA256(sub_combined, keyLength);
                     // Convert from Bytes to BigInteger
                     BigInteger input = Utils.OS2IP(ER);
                     // Check if the output is bigger or equal than N

@@ -19,6 +19,7 @@ namespace TumbleBitSetup
         /// <returns>List of x values and y</returns>
         public static Tuple<BigInteger[], BigInteger> Proving(BigInteger p, BigInteger q, BigInteger e, byte[] psBytes, int k = 128)
         {
+            k = Utils.GetByteLength(k) * 8;
             BigInteger y;
             BigInteger Two = BigInteger.Two;
 
@@ -98,6 +99,7 @@ namespace TumbleBitSetup
         /// <returns>true if the xValues verify, false otherwise</returns>
         public static bool Verifying(RsaPubKey pubKey, BigInteger[] xValues, BigInteger y, int keyLength, byte[] psBytes, int k = 128)
         {
+            k = Utils.GetByteLength(k) * 8;
             BigInteger rPrime;
             BigInteger lowerLimit = BigInteger.Two.Pow(keyLength - 1);
             var Modulus = pubKey._pubKey.Modulus;

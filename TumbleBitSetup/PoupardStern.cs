@@ -56,7 +56,7 @@ namespace TumbleBitSetup
 
             // Generate the list of z Values
             for (int i = 0; i < BigK; i++)
-                zValues[i] =  SampleFromZnStar(pubKey, psBytes, i, k, ModulusBitLength);
+                zValues[i] =  SampleFromZnStar(pubKey, psBytes, i, BigK, ModulusBitLength);
 
             for (;;)
             {
@@ -132,7 +132,7 @@ namespace TumbleBitSetup
             // Encrypting and verifying the signatures
             for (int i = 0; i < BigK; i++)
             {
-                var z_i = SampleFromZnStar(pubKey, psBytes, i, k, keyLength);
+                var z_i = SampleFromZnStar(pubKey, psBytes, i, BigK, keyLength);
                 // Compute right side of the equality
                 var rs = z_i.ModPow(rPrime, Modulus);
                 // If the two sides are not equal
@@ -151,13 +151,12 @@ namespace TumbleBitSetup
         /// <param name="k">Security parameter specified in the setup.</param>
         /// <param name="keyLength">The size of the RSA key in bits</param>
         /// <returns></returns>
-        internal static BigInteger SampleFromZnStar(RsaPubKey pubKey, byte[] psBytes, int i, int k, int keyLength)
+        internal static BigInteger SampleFromZnStar(RsaPubKey pubKey, byte[] psBytes, int i, int BigK, int keyLength)
         {
             BigInteger Modulus = pubKey._pubKey.Modulus;
-            GetK(k, out int BigK); // I think it would be more efficient to calculate K once outside this function.
             int j = 2;
             // Octet Length of i
-            int iLen = Utils.GetByteLength(BigK);
+            int iLen = Utils.GetOctetLen(BigK);
             // Byte representation of i
             var EI = Utils.I2OSP(i, iLen);
             // ASN.1 encoding of the PublicKey

@@ -35,7 +35,7 @@ namespace TumbleBitSetup
                 throw new ArgumentException("Bad RSA P and Q");
 
             // Calculating 2^{|N| - 1}
-            BigInteger lowerLimit = Two.Pow(keyLength - 1).Subtract(BigInteger.One);
+            BigInteger lowerLimit = Two.Pow(keyLength - 1);
             
             // Calculating phi
             BigInteger pSub1 = p.Subtract(BigInteger.One);

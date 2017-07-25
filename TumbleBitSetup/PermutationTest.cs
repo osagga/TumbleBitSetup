@@ -128,7 +128,7 @@ namespace TumbleBitSetup
 
             foreach (int p in primesList)
             {
-                if (!N.Gcd(BigInteger.ValueOf(p)).Equals(BigInteger.One))
+                if (!(N.Gcd(BigInteger.ValueOf(p)).Equals(BigInteger.One)))
                     return false;
             }
             return true;

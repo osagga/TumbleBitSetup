@@ -50,9 +50,13 @@ namespace TumbleBitSetup
             BigInteger pSub1 = p.Subtract(BigInteger.One);
             BigInteger qSub1 = q.Subtract(BigInteger.One);
             BigInteger phi = pSub1.Multiply(qSub1);
+            // N - phi(N)
+            BigInteger NsubPhi = Modulus.Subtract(phi);
 
-            // (N-phi)*2^k << N (needs fix)
-            if (!(Modulus.Subtract(phi).Multiply(Two.Pow(k)).CompareTo(Modulus) < 0))
+            // (N-phi)*2^k << N => N/{(N-phi)*2^k} > 2^10
+            var p11 = NsubPhi.Multiply(Two.Pow(k));
+            var p1 = Modulus.Divide(p11);
+            if (p1.CompareTo(Two.Pow(10)) > 0)
                 throw new ArgumentOutOfRangeException("Bad RSA modulus N");
 
             // Generate K
@@ -79,7 +83,7 @@ namespace TumbleBitSetup
                 GetW(pubKey, psBytes, xValues, k, keyLength, out BigInteger w);
 
                 // Compute y
-                y = r.Add(Modulus.Subtract(phi).Multiply(w));
+                y = r.Add(NsubPhi.Multiply(w));
 
                 // if y >= 2^{ |N| - 1 }
                 if (y.CompareTo(lowerLimit) >= 0)

@@ -54,9 +54,10 @@ namespace TumbleBitSetup
             BigInteger NsubPhi = Modulus.Subtract(phi);
 
             // (N-phi)*2^k << N => N/{(N-phi)*2^k} > 2^10
+            // So we check for N/{(N-phi)*2^k} <= 2^10
             var p11 = NsubPhi.Multiply(Two.Pow(k));
             var p1 = Modulus.Divide(p11);
-            if (p1.CompareTo(Two.Pow(10)) > 0)
+            if (p1.CompareTo(Two.Pow(10)) <= 0)
                 throw new ArgumentOutOfRangeException("Bad RSA modulus N");
 
             // Generate K

@@ -244,16 +244,9 @@ namespace TumbleBitSetup
         {
             // Initialize a cryptographic randomness.
             SecureRandom random = new SecureRandom();
-            int upperLimit = keyLength - 1;
 
-            // Generate a random bitSize for r within the range (0, |N| - 1]
-            int bitSize = 0;
-            for (;;)
-            {
-                bitSize = random.NextInt();
-                if (bitSize <= upperLimit && bitSize > 0)
-                    break;
-            }
+            // bitSize for the random value r.
+            int bitSize = keyLength - 1;
 
             // Generate random number that is bitSize long.
             r = new BigInteger(bitSize, random);

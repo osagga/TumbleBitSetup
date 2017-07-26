@@ -75,8 +75,8 @@ namespace TumbleBitSetup
             if (Modulus.CompareTo(lowerLimit) < 0)
                 return false;
 
-            // if N > 2^{KeySize}
-            if (Modulus.CompareTo(upperLimit) > 0)
+            // if N >= 2^{KeySize}
+            if (Modulus.CompareTo(upperLimit) >= 0)
                 return false;
 
             // Generate m1 and m2

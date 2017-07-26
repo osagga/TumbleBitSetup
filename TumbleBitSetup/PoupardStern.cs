@@ -34,8 +34,8 @@ namespace TumbleBitSetup
 
             BigInteger Modulus = pubKey._pubKey.Modulus;
 
-            // Check if N <= 2^{|N|-1}
-            if (Modulus.CompareTo(lowerLimit) <= 0)
+            // Check if N < 2^{|N|-1}
+            if (Modulus.CompareTo(lowerLimit) < 0)
                 throw new ArgumentOutOfRangeException("Bad RSA modulus N");
 
             // if N >= 2^{KeySize}
@@ -125,8 +125,8 @@ namespace TumbleBitSetup
             // if y < 0
             if (y.CompareTo(BigInteger.Zero) < 0)
                 return false;
-            // if N <= 2^{KeySize-1}
-            if (Modulus.CompareTo(lowerLimit) <= 0)
+            // if N < 2^{KeySize-1}
+            if (Modulus.CompareTo(lowerLimit) < 0)
                 return false;
             // if N >= 2^{KeySize}
             if (Modulus.CompareTo(upperLimit) >= 0)

@@ -234,7 +234,7 @@ namespace TumbleBitSetup
             // Hash the OctetString
             var BigW = Utils.SHA256(s);
             // Truncate to k-bits
-            BigW = Utils.TruncateKbits(BigW, k);
+            BigW = Utils.TruncateToKbits(BigW, k);
             // Convert to an Integer and return
             w = Utils.OS2IP(BigW);
         }

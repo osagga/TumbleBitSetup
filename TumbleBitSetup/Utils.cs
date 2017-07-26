@@ -98,14 +98,14 @@ namespace TumbleBitSetup
         /// <returns></returns> 
         internal static byte[] I2OSP(int x, int xLen)
         {
-            byte[] outBytes = new byte[xLen];
-
             if (x < 0)
                 throw new ArgumentOutOfRangeException("only positive integers");
 
             // checks If x >= 256^xLen
             if (BigInteger.ValueOf(x).CompareTo(BigInteger.ValueOf(256).Pow(xLen)) >= 0)
                 throw new ArithmeticException("integer too large");
+
+            byte[] outBytes = new byte[xLen];
 
             // converts x to an unsigned byteArray.
             for (int i = 0; (x > 0) && (i < outBytes.Length); i++)
@@ -129,8 +129,6 @@ namespace TumbleBitSetup
         /// <returns></returns> 
         internal static byte[] I2OSP(BigInteger x, int xLen)
         {
-            byte[] outBytes = new byte[xLen];
-
             var N256 = BigInteger.ValueOf(256);
 
             if (x.CompareTo(BigInteger.Zero) < 0)
@@ -139,6 +137,8 @@ namespace TumbleBitSetup
             // checks If x >= 256^xLen
             if (x.CompareTo(N256.Pow(xLen)) >= 0)
                 throw new ArithmeticException("integer too large");
+
+            byte[] outBytes = new byte[xLen];
 
             // converts x to an unsigned byteArray.
             for (int i = 0; (x.CompareTo(BigInteger.Zero) > 0) && (i < outBytes.Length); i++)
@@ -164,7 +164,7 @@ namespace TumbleBitSetup
             int i;
 
             // To skip the first leading zeros (if they exist)
-            for (i = 0; (x[i] == 0x00) && (i < x.Length); i++)
+            for (i = 0; (i < x.Length) && (x[i] == 0x00); i++)
                 continue;
             i--;
 
@@ -206,7 +206,7 @@ namespace TumbleBitSetup
         /// <param name="srcArray"></param>
         /// <param name="k"> Amount of bits to truncate</param>
         /// <returns>byteArray with k-bits</returns>
-        internal static byte[] TruncateKbits(byte[] srcArray, int k)
+        internal static byte[] TruncateToKbits(byte[] srcArray, int k)
         {
             // Number of bytes needed to represent k bits
             int nBytes = GetByteLength(k);
@@ -227,7 +227,8 @@ namespace TumbleBitSetup
         /// <returns></returns>
         internal static int GetByteLength(int nBits)
         {
-            // from BouncyCastle, BigInteger.cs #L244
+            if (nBits < 0)
+                throw new ArgumentOutOfRangeException("Invalid number of bits");
             int BitsPerByte = 8;
             return (nBits + BitsPerByte - 1) / BitsPerByte;
         }

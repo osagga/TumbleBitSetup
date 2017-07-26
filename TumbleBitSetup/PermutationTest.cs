@@ -97,7 +97,7 @@ namespace TumbleBitSetup
             // Generate list of rho values
             GetRhos(m2, psBytes, pubKey, keyLength, out byte[][] rhoValues);
 
-            // Encrypting and verifying the signatures
+            // Verifying the signatures
             for (int i = 0; i < m2; i++)
             {
                 if (i <= m1)

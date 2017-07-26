@@ -146,7 +146,7 @@ namespace TumbleBitSetup
             // Computing rPrime
             rPrime = y.Subtract(Modulus.Multiply(w));
 
-            // Encrypting and verifying the signatures
+            // verifying the x values
             for (int i = 0; i < BigK; i++)
             {
                 var z_i = SampleFromZnStar(pubKey, psBytes, i, BigK, keyLength);

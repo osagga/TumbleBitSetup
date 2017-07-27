@@ -22,7 +22,6 @@ namespace TumbleBitSetup.Tests
 
                 Assert.AreEqual(decoded, i);
             }
-
         }
 
         [TestMethod()]
@@ -78,14 +77,23 @@ namespace TumbleBitSetup.Tests
         [TestMethod()]
         public void MGF1_SHA256_Test()
         {
+            // Doesn't work yet, check with #15
             var data1 = Strings.ToByteArray("TEST42");
             var data2 = Strings.ToByteArray("TEST222");
-            var keySize = 42;
+            var keySize = 856; // Not really sure why the length of mask1 is 107 bytes
             var keySizeBytes = Utils.GetByteLength(keySize);
+            var seed1 = TestUtils.StringToByteArray("d6e168c5f256a2dcff7ef12facd390f393c7a88d");
+            var mask1 = "0742ba966813af75536bb6149cc44fc256fd6406df79665bc31dc5"
+                      + "a62f70535e52c53015b9d37d412ff3c1193439599e1b628774c50d9c"
+                      + "cb78d82c425e4521ee47b8c36a4bcffe8b8112a89312fc04420a39de"
+                      + "99223890e74ce10378bc515a212b97b8a6447ba6a8870278";
 
             var output1 = Utils.MGF1_SHA256(data1, keySize);
             var output11 = Utils.MGF1_SHA256(data1, keySize);
             var output2 = Utils.MGF1_SHA256(data2, keySize);
+            var output3 = Utils.MGF1_SHA256(seed1, keySize);
+
+            var expectedOutput3 = TestUtils.StringToByteArray(mask1);
 
             // Test that the length is correct
             Assert.AreEqual(output1.Length, keySizeBytes);
@@ -93,6 +101,8 @@ namespace TumbleBitSetup.Tests
             Assert.IsTrue(output11.SequenceEqual(output1));
             // Test that the two output are different
             Assert.IsFalse(output1.SequenceEqual(output2));
+            // Assert that seed1 Test holds
+            Assert.IsTrue(output3.SequenceEqual(expectedOutput3));
         }
 
         [TestMethod()]
@@ -112,14 +122,20 @@ namespace TumbleBitSetup.Tests
         [TestMethod()]
         public void GetOctetLenTest()
         {
-            // TODO: Not really is these tests are enough
             int x = 255; // this is 0xff, so it should give 1
             int y = 256; // this is 0x100, so it should give 2
+            int z = 1;
+            int k = 5;
+
             var xLen = Utils.GetOctetLen(x);
             var yLen = Utils.GetOctetLen(y);
+            var zLen = Utils.GetOctetLen(z);
+            var kLen = Utils.GetOctetLen(k);
+
             Assert.IsTrue(xLen.Equals(1));
             Assert.IsTrue(yLen.Equals(2));
-
+            Assert.IsTrue(zLen.Equals(1));
+            Assert.IsTrue(kLen.Equals(1));
         }
 
         [TestMethod()]
@@ -127,10 +143,15 @@ namespace TumbleBitSetup.Tests
         {
             var data1 = Strings.ToByteArray("TEST42");
             var data2 = Strings.ToByteArray("TEST22");
+            byte[] TEST6 = new byte[1] { (byte)0x19 };
 
             var output1 = Utils.SHA256(data1);
             var output11 = Utils.SHA256(data1);
             var output2 = Utils.SHA256(data2);
+            var output3 = Utils.SHA256(TEST6);
+
+            // Convert output to String
+            var output3String = BitConverter.ToString(output3).Replace("-", "");
 
             // Test that the length is correct
             Assert.AreEqual(output1.Length, 32);
@@ -138,6 +159,8 @@ namespace TumbleBitSetup.Tests
             Assert.IsTrue(output11.SequenceEqual(output1));
             // Test that the two output are different
             Assert.IsFalse(output1.SequenceEqual(output2));
+            // Test TEST6 from https://tools.ietf.org/html/rfc6234#section-8.5 (top of page 98)
+            Assert.IsTrue(output3String.Equals("68AA2E2EE5DFF96E3355E6C7EE373E3D6A4E17F75F9518D843709C0C9BC3E3D4"));
         }
 
         [TestMethod()]
@@ -150,6 +173,7 @@ namespace TumbleBitSetup.Tests
 
             Assert.IsTrue(trunkStirng.Equals("AABBCCDD"));
         }
+
         [TestMethod()]
         public void GetByteLengthTest()
         {

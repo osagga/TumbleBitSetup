@@ -21,7 +21,7 @@ namespace TumbleBitSetup
         {
             byte[] output = new byte[GetByteLength(keySize)];
             Sha256Digest sha256 = new Sha256Digest();
-            var generator = new Mgf1BytesGenerator(sha256);
+            var generator = new Mgf1BytesGenerator(new ShortenedDigest(sha256, 20));
             generator.Init(new MgfParameters(data));
             generator.GenerateBytes(output, 0, output.Length);
             return output;
@@ -53,7 +53,7 @@ namespace TumbleBitSetup
         /// <returns></returns>
         internal static int GetOctetLen(int x)
         {
-            return (int)Math.Ceiling((1.0 / 8.0) * Math.Log(x, 2));
+            return (int)Math.Ceiling((1.0 / 8.0) * Math.Log(x+1, 2));
         }
         
         /// <summary>

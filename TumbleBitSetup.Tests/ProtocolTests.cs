@@ -173,8 +173,98 @@ namespace TumbleBitSetup.Tests
         public int iterInValid = 1; // Number of iterations for an invalid test
 
         int alpha = 41;
+        int keySize = 2048;
         BigInteger Exp = BigInteger.Three;
         public byte[] ps = Strings.ToByteArray("public string");
+
+        // unit tests for sub-functions
+        [TestMethod()]
+        public void GetRhosTest()
+        {
+            // GetRhos is really producing outputs rho that are<N and have GCD(N, rho) = 1
+            int m2 = 11;
+            var keyPair = new RsaKey(Exp, keySize);
+
+            var privKey = keyPair._privKey;
+            var pubKey = new RsaPubKey(keyPair);
+
+            var Modulus = pubKey._pubKey.Modulus;
+
+            // Generate list of rho values
+            PermutationTest.GetRhos(m2, ps, pubKey, keySize, out byte[][] rhoValues);
+
+            for (int i = 0; i < rhoValues.Length; i++)
+            {
+                // Convert rho value to a number
+                var num = Utils.OS2IP(rhoValues[i]);
+                // Assert it's less than N
+                Assert.IsTrue(num.CompareTo(Modulus) < 0);
+                // Assert GCD(rho, N) == 1
+                Assert.IsTrue(Modulus.Gcd(num).Equals(BigInteger.One));
+            }
+        }
+
+        [TestMethod()]
+        public void CheckAlphaNTest1()
+        {
+            // CheckAlphaN outputs fail if N has some prime number p < alpha as a factor.
+            BigInteger p, q;
+
+            // prime that comes immediately before alpha
+            var primeN = Utils.Primes(alpha - 1).Last();
+
+            p = BigInteger.ValueOf(primeN);
+
+            int pbitlength = p.BitLength;
+            int qbitlength = (keySize - pbitlength);
+            
+            // use alpha as Q
+            q = BigInteger.ValueOf(alpha);
+            var Modulus = p.Multiply(q);
+            
+            // Assert CheckAlphaN returns False
+            Assert.IsFalse(PermutationTest.CheckAlphaN(alpha, Modulus));
+        }
+
+        [TestMethod()]
+        public void CheckAlphaNTest2()
+        {
+            // CheckAlphaN outputs fail if N is even.
+            BigInteger p, q;
+
+            // prime that comes immediately before alpha
+            var primeN = Utils.Primes(alpha - 1).Last();
+
+            // Use the prime before alpha for p.
+            p = BigInteger.ValueOf(primeN);
+
+            // Use Two as q (to make N Even).
+            q = BigInteger.Two;
+            var Modulus = p.Multiply(q);
+
+            // Assert CheckAlphaN returns False
+            Assert.IsFalse(PermutationTest.CheckAlphaN(alpha, Modulus));
+        }
+
+        [TestMethod()]
+        public void Get_m1_m2Test()
+        {
+            // Get_m1_m2 produce outputs that match those in Section 2.7 of setup.pdf
+            var k = 128;
+            var Exp = 65537;
+            PermutationTest.Get_m1_m2(41, Exp, k, out int m1, out int m2);
+            Assert.IsTrue(m1.Equals(25) && m2.Equals(25));
+            PermutationTest.Get_m1_m2(997, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(13) && m2.Equals(13));
+            PermutationTest.Get_m1_m2(4999, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(11) && m2.Equals(11));
+            PermutationTest.Get_m1_m2(7649, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(10) && m2.Equals(11));
+            PermutationTest.Get_m1_m2(20663, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(9) && m2.Equals(10));
+            PermutationTest.Get_m1_m2(33469, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(9) && m2.Equals(9));
+        }
 
         [TestMethod()]
         public void ProvingAndVerifyingTest()
@@ -416,7 +506,7 @@ namespace TumbleBitSetup.Tests
             /*
              * Test 3D
              * Let p be the prime that comes immediately before alpha and q is some good prime
-             * such that the modulus N=pq is still a "sufficiently long"
+             * such that the modulus N=PxQ is still a "sufficiently long"
             */
 
             BigInteger p, q;
@@ -485,7 +575,109 @@ namespace TumbleBitSetup.Tests
         public int iterInValid = 1; // Number of iterations for an invalid test
 
         BigInteger Exp = BigInteger.Three;
+        int keySize = 2048;
         public byte[] ps = Strings.ToByteArray("public string");
+
+        // unit tests for sub-functions
+        [TestMethod()]
+        public void SampleFromZnStarTest()
+        {
+            // SampleFromZnStar is really producing z_i that are <N
+            int BigK = 129; // If k = 128
+            keySize = 2048;
+
+            var keyPair = new RsaKey(Exp, keySize);
+            var privKey = keyPair._privKey;
+            var pubKey = new RsaPubKey(keyPair);
+
+            var Modulus = pubKey._pubKey.Modulus;
+
+            for (int i = 0; i < BigK; i++)
+            {
+                var num = PoupardStern.SampleFromZnStar(pubKey, ps, i, BigK, keySize);
+                // Assert that num is < N
+                Assert.IsTrue(num.CompareTo(Modulus) < 0);
+            }
+        }
+
+        [TestMethod()]
+        public void getW_Data()
+        {
+            // getW is really producing z_i that are <N
+            int k = 128;
+            int BigK = 10000; 
+            keySize = 128;
+
+            BigInteger lowerLimit = BigInteger.Two.Pow(keySize - 1);
+
+            var keyPair = new RsaKey(Exp, keySize);
+            var privKey = keyPair._privKey;
+            var pubKey = new RsaPubKey(keyPair);
+
+            var Modulus = pubKey._pubKey.Modulus;
+            
+            // Calculating phi
+            BigInteger pSub1 = privKey.P.Subtract(BigInteger.One);
+            BigInteger qSub1 = privKey.Q.Subtract(BigInteger.One);
+            BigInteger phi = pSub1.Multiply(qSub1);
+            BigInteger NsubPhi = Modulus.Subtract(phi);
+
+            BigInteger[] Datalist = new BigInteger[BigK];
+
+            // Initialize list of z values
+            BigInteger[] zValues = new BigInteger[BigK];
+
+            // Generate the list of z Values
+            for (int i = 0; i < BigK; i++)
+                zValues[i] = PoupardStern.SampleFromZnStar(pubKey, ps, i, BigK, keySize);
+
+            for (int i = 0; i < BigK; i++)
+            {
+                for (;;)
+                {
+                    // Initialize list of x values.
+                    BigInteger[] xValues = new BigInteger[BigK];
+
+                    // Generate r
+                    PoupardStern.GetR(keySize, out BigInteger r);
+
+                    for (int j = 0; j < BigK; i++)
+                        // Compute x_i
+                        xValues[j] = zValues[j].ModPow(r, Modulus);
+
+                    // Compute w
+                    PoupardStern.GetW(pubKey, ps, xValues, k, keySize, out BigInteger w);
+
+                    // Compute y
+                    BigInteger y = r.Add(NsubPhi.Multiply(w));
+
+                    // if y >= 2^{ |N| - 1 }
+                    if (y.CompareTo(lowerLimit) >= 0)
+                        continue;
+
+                    // if y < 0
+                    if (y.CompareTo(BigInteger.Zero) < 0)
+                        continue;
+
+                    Datalist[i] = w;
+                    break;
+                }
+            }
+            Console.WriteLine(String.Join(",", Datalist.ToList()));
+        }
+
+        [TestMethod()]
+        public void GetR_Data()
+        {
+            keySize = 128;
+            var sampels = 10000;
+            var list = new BigInteger[sampels];
+
+            for (int i = 0; i < sampels; i++)
+                PoupardStern.GetR(keySize, out list[i]);
+
+            Console.WriteLine(String.Join(",", list.ToList()));
+        }
 
         [TestMethod()]
         public void ProvingAndVerifyingTest()

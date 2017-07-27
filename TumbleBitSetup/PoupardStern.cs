@@ -63,7 +63,6 @@ namespace TumbleBitSetup
             GetK(k, out int BigK);
 
             // Initialize list of x and z values
-            BigInteger[] xValues = new BigInteger[BigK];
             BigInteger[] zValues = new BigInteger[BigK];
 
             // Generate the list of z Values
@@ -72,6 +71,9 @@ namespace TumbleBitSetup
 
             for (;;)
             {
+                // Initialize list of x values.
+                BigInteger[] xValues = new BigInteger[BigK];
+
                 // Generate r
                 GetR(keyLength, out BigInteger r);
 

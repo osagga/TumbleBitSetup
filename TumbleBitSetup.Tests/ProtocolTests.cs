@@ -627,86 +627,6 @@ namespace TumbleBitSetup.Tests
                 Assert.IsTrue(num.CompareTo(Modulus) < 0);
             }
         }
-
-        [TestMethod()]
-        public void getW_Data()
-        {
-            // getW is really producing z_i that are <N
-            int k = 128;
-            int BigK = 10000; 
-            keySize = 128;
-
-            BigInteger lowerLimit = BigInteger.Two.Pow(keySize - 1);
-
-            var keyPair = new RsaKey(Exp, keySize);
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
-
-            var Modulus = pubKey._pubKey.Modulus;
-            
-            // Calculating phi
-            BigInteger pSub1 = privKey.P.Subtract(BigInteger.One);
-            BigInteger qSub1 = privKey.Q.Subtract(BigInteger.One);
-            BigInteger phi = pSub1.Multiply(qSub1);
-            BigInteger NsubPhi = Modulus.Subtract(phi);
-
-            BigInteger[] Datalist = new BigInteger[BigK];
-
-            // Initialize list of z values
-            BigInteger[] zValues = new BigInteger[BigK];
-
-            // Generate the list of z Values
-            for (int i = 0; i < BigK; i++)
-                zValues[i] = PoupardStern.SampleFromZnStar(pubKey, ps, i, BigK, keySize);
-
-            for (int i = 0; i < BigK; i++)
-            {
-                for (;;)
-                {
-                    // Initialize list of x values.
-                    BigInteger[] xValues = new BigInteger[BigK];
-
-                    // Generate r
-                    PoupardStern.GetR(keySize, out BigInteger r);
-
-                    for (int j = 0; j < BigK; i++)
-                        // Compute x_i
-                        xValues[j] = zValues[j].ModPow(r, Modulus);
-
-                    // Compute w
-                    PoupardStern.GetW(pubKey, ps, xValues, k, keySize, out BigInteger w);
-
-                    // Compute y
-                    BigInteger y = r.Add(NsubPhi.Multiply(w));
-
-                    // if y >= 2^{ |N| - 1 }
-                    if (y.CompareTo(lowerLimit) >= 0)
-                        continue;
-
-                    // if y < 0
-                    if (y.CompareTo(BigInteger.Zero) < 0)
-                        continue;
-
-                    Datalist[i] = w;
-                    break;
-                }
-            }
-            Console.WriteLine(String.Join(",", Datalist.ToList()));
-        }
-
-        [TestMethod()]
-        public void GetR_Data()
-        {
-            keySize = 128;
-            var sampels = 10000;
-            var list = new BigInteger[sampels];
-
-            for (int i = 0; i < sampels; i++)
-                PoupardStern.GetR(keySize, out list[i]);
-
-            Console.WriteLine(String.Join(",", list.ToList()));
-        }
-
         // unit tests for main functions
 
         [TestMethod()]
@@ -716,11 +636,13 @@ namespace TumbleBitSetup.Tests
             for (int i = 0; i < iterValid; i++)
             {
                 // (Exp, keySize, k)
+                Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 1001, 128)); // weird length keySize
                 Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 4096, 128));
                 Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 2048, 128));
                 Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 1024, 128));
-                Assert.IsFalse(_ProvingAndVerifyingTest(Exp, 245, 128)); // throws an exception
             }
+
+            Assert.IsFalse(_ProvingAndVerifyingTest(Exp, 245, 128)); // throws an exception
 
         }
         public bool _ProvingAndVerifyingTest(BigInteger Exp, int keySize, int k)

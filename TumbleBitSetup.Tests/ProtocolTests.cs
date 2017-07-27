@@ -290,6 +290,8 @@ namespace TumbleBitSetup.Tests
             Assert.IsTrue(m1.Equals(9) && m2.Equals(9));
         }
 
+        // unit tests for main functions
+
         [TestMethod()]
         public void ProvingAndVerifyingTest()
         {
@@ -297,6 +299,8 @@ namespace TumbleBitSetup.Tests
             // TODO: Different k test?
             for (int i = 0; i < iterValid; i++)
             {
+                Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 1001, alpha)); // weird length key case
+                Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 245, alpha)); // weird length key case
                 Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 4096, alpha));
                 Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 2048, alpha));
                 Assert.IsTrue(_ProvingAndVerifyingTest(new BigInteger("65537"), 2048, 7649)); // Case where m1 != m2
@@ -703,7 +707,10 @@ namespace TumbleBitSetup.Tests
             Console.WriteLine(String.Join(",", list.ToList()));
         }
 
+        // unit tests for main functions
+
         [TestMethod()]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void ProvingAndVerifyingTest()
         {
             for (int i = 0; i < iterValid; i++)
@@ -712,6 +719,7 @@ namespace TumbleBitSetup.Tests
                 Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 4096, 128));
                 Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 2048, 128));
                 Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 1024, 128));
+                Assert.IsFalse(_ProvingAndVerifyingTest(Exp, 245, 128)); // throws an exception
             }
 
         }

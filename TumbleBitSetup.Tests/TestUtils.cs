@@ -104,6 +104,11 @@ namespace TumbleBitSetup.Tests
             return !t1.Except(t2).Any();
         }
 
+        /// <summary>
+        /// Converts a hex string to a ByteArray
+        /// </summary>
+        /// <param name="hex">The input hex string.</param>
+        /// <returns></returns>
         public static byte[] StringToByteArray(string hex)
         {
             // https://stackoverflow.com/questions/321370/how-can-i-convert-a-hex-string-to-a-byte-array
@@ -112,5 +117,6 @@ namespace TumbleBitSetup.Tests
                              .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
                              .ToArray();
         }
+
     }
 }

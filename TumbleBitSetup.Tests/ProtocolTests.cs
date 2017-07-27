@@ -606,7 +606,8 @@ namespace TumbleBitSetup.Tests
         int keySize = 2048;
         public byte[] ps = Strings.ToByteArray("public string");
 
-        // unit tests for sub-functions
+        // unit tests for sub functions
+
         [TestMethod()]
         public void SampleFromZnStarTest()
         {
@@ -627,6 +628,41 @@ namespace TumbleBitSetup.Tests
                 Assert.IsTrue(num.CompareTo(Modulus) < 0);
             }
         }
+
+        [TestMethod()]
+        public void getWTest()
+        {
+            var k = 128;
+            var BigK = k+1;
+            var keyPair = new RsaKey(Exp, keySize);
+            var pubKey = new RsaPubKey(keyPair);
+
+            var Modulus = pubKey._pubKey.Modulus;
+
+            // Initialize list of z values
+            BigInteger[] zValues = new BigInteger[BigK];
+
+            // Generate the list of z Values
+            for (int i = 0; i < BigK; i++)
+                zValues[i] = PoupardStern.SampleFromZnStar(pubKey, ps, i, BigK, keySize);
+
+            // Initialize list of x values.
+            BigInteger[] xValues = new BigInteger[BigK];
+
+            // Generate r
+            PoupardStern.GetR(keySize, out BigInteger r);
+
+            for (int j = 0; j < BigK; j++)
+                // Compute x_i
+                xValues[j] = zValues[j].ModPow(r, Modulus);
+
+            // Compute w
+            PoupardStern.GetW(pubKey, ps, xValues, k, keySize, out BigInteger w);
+
+            // Check that the bitLength of w equals to k.
+            Assert.IsTrue(w.BitLength.Equals(k));
+        }
+        
         // unit tests for main functions
 
         [TestMethod()]

@@ -52,11 +52,11 @@ namespace TumbleBitSetup.Tests
                 {
                     double ProvingTime = 0.0;
                     double VerifyingTime = 0.0;
-                    Console.Write(" ,{0} ,{1}", keySize, k);
+                    Console.Write(", {0}, {1}", keySize, k);
                     for (int i = 0; i < iterations; i++)
                     {
                         _ProvingAndVerifyingTest2(Exp, keySize, k, out double subPTime, out double subVTime);
-                        Console.WriteLine(" ,{0} ,{1} ", subPTime, subVTime);
+                        Console.Write(", {0}, {1}", subPTime, subVTime);
                         ProvingTime += subPTime;
                         VerifyingTime += subVTime;
                     }
@@ -68,7 +68,7 @@ namespace TumbleBitSetup.Tests
         public void BenchmarkCheckAlphaN()
         {
             var alphaList = new int[6] { 41, 997, 4999, 7649, 20663, 33469 };
-            var keySizeList = new int[3] { 1024, 2048, 4096 };
+            var keySizeList = new int[3] {512, 1024, 2048};
             Console.WriteLine("checkAlphaN , alpha, keyLength, Check Time");
 
             foreach (int alpha in alphaList)

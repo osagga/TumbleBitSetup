@@ -242,9 +242,10 @@ namespace TumbleBitSetup.Tests
 
             int pbitlength = p.BitLength;
             int qbitlength = (keySize - pbitlength);
-            
-            // use alpha as Q
-            q = BigInteger.ValueOf(alpha);
+
+            // Generate q
+            q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
+
             var Modulus = p.Multiply(q);
             
             // Assert CheckAlphaN returns False
@@ -257,14 +258,15 @@ namespace TumbleBitSetup.Tests
             // CheckAlphaN outputs fail if N is even.
             BigInteger p, q;
 
-            // prime that comes immediately before alpha
-            var primeN = Utils.Primes(alpha - 1).Last();
+            // p is Two (Even)
+            p = BigInteger.Two;
 
-            // Use the prime before alpha for p.
-            p = BigInteger.ValueOf(primeN);
+            int pbitlength = p.BitLength;
+            int qbitlength = (keySize - pbitlength);
 
-            // Use Two as q (to make N Even).
-            q = BigInteger.Two;
+            // Generate q to fill N
+            q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
+
             var Modulus = p.Multiply(q);
 
             // Assert CheckAlphaN returns False

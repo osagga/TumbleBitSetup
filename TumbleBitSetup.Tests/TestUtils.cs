@@ -47,6 +47,7 @@ namespace TumbleBitSetup.Tests
         public static BigInteger GenQ(BigInteger p, int qbitlength, int strength, BigInteger e)
         {
             SecureRandom random = new SecureRandom();
+            BigInteger One = BigInteger.One;
             // From BouncyCastle
             int mindiffbits = strength / 3;
             // From TumbleBit, See A.15.2 IEEE P1363 v2 D1 for certainty parameter
@@ -54,42 +55,19 @@ namespace TumbleBitSetup.Tests
             BigInteger q, n;
             for (;;)
             {
-                // Generate q, prime and (q-1) relatively prime to e,
-                // and not equal to p
-                //
-                for (;;)
-                {
-                    q = new BigInteger(qbitlength, 1, random);
+                q = new BigInteger(qbitlength, certainty, random);
 
-                    if (q.Subtract(p).Abs().BitLength < mindiffbits)
-                        continue;
+                if (q.Mod(e).Equals(One))
+                    continue;
 
-                    if (q.Mod(e).Equals(BigInteger.One))
-                        continue;
+                if (!e.Gcd(q.Subtract(One)).Equals(One))
+                    continue;
 
-                    if (!q.IsProbablePrime(certainty))
-                        continue;
-
-                    if (e.Gcd(q.Subtract(BigInteger.One)).Equals(BigInteger.One))
-                        break;
-                }
-
-                //
-                // calculate the modulus
-                // This also checks if N >= 2^{keySize - 1}
-                //
                 n = p.Multiply(q);
 
                 if (n.BitLength == strength)
-                    break;
-
-                //
-                // if we Get here our primes aren't big enough, try again
-                //
+                    return q;
             }
-
-            return q;
-
         }
 
         /// <summary>

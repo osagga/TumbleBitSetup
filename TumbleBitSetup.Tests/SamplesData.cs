@@ -19,10 +19,11 @@ namespace TumbleBitSetup.Tests
         int sampels = 10000;
 
         [TestMethod()]
-        public void getW_Data()
+        public void GetW_Data()
         {
             var keyPair = new RsaKey(Exp, keySize);
             var pubKey = new RsaPubKey(keyPair);
+            BigK = 5000;
 
             var Modulus = pubKey._pubKey.Modulus;
 
@@ -88,7 +89,7 @@ namespace TumbleBitSetup.Tests
         public void GetRhos_Data()
         {
             // GetRhos is really producing outputs rho that are<N and have GCD(N, rho) = 1
-            int m2 = 11;
+            int m2 = 10000;
             var keyPair = new RsaKey(Exp, keySize);
 
             var privKey = keyPair._privKey;

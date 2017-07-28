@@ -1,5 +1,6 @@
 ﻿using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -64,11 +65,18 @@ namespace TumbleBitSetup
         /// <returns> true if the signatures verify, false otherwise</returns>
         public static bool Verifying(RsaPubKey pubKey, byte[][] sigs, int alpha, int keyLength, byte[] psBytes, int k = 128)
         {
+            BigInteger Two = BigInteger.Two;
             var Modulus = pubKey._pubKey.Modulus;
             var Exponent = pubKey._pubKey.Exponent;
+            BigInteger lowerLimit = Two.Pow(keyLength - 1);
+            BigInteger upperLimit = Two.Pow(keyLength);
 
-            // Checking that N > 2^{keyLength-1}
-            if (!(Modulus.BitLength == keyLength))
+            // if N < 2^{KeySize-1}
+            if (Modulus.CompareTo(lowerLimit) < 0)
+                return false;
+
+            // if N >= 2^{KeySize}
+            if (Modulus.CompareTo(upperLimit) >= 0)
                 return false;
 
             // Generate m1 and m2
@@ -89,7 +97,7 @@ namespace TumbleBitSetup
             // Generate list of rho values
             GetRhos(m2, psBytes, pubKey, keyLength, out byte[][] rhoValues);
 
-            // Encrypting and verifying the signatures
+            // Verifying the signatures
             for (int i = 0; i < m2; i++)
             {
                 if (i <= m1)
@@ -120,7 +128,7 @@ namespace TumbleBitSetup
 
             foreach (int p in primesList)
             {
-                if (!N.Gcd(BigInteger.ValueOf(p)).Equals(BigInteger.One))
+                if (!(N.Gcd(BigInteger.ValueOf(p)).Equals(BigInteger.One)))
                     return false;
             }
             return true;
@@ -172,9 +180,9 @@ namespace TumbleBitSetup
                     // Byte representation of j
                     var EJ = Utils.I2OSP(j, jLen);
                     // Combine EJ with the rest of the string
-                    combined = Utils.Combine(combined, EJ);
+                    var sub_combined = Utils.Combine(combined, EJ);
                     // Pass the bytes to H_1
-                    byte[] ER = Utils.MGF1_SHA256(combined, keyLength);
+                    byte[] ER = Utils.MGF1_SHA256(sub_combined, keyLength);
                     // Convert from Bytes to BigInteger
                     BigInteger input = Utils.OS2IP(ER);
                     // Check if the output is bigger or equal than N

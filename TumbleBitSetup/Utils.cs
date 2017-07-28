@@ -3,6 +3,7 @@ using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Math;
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -18,7 +19,7 @@ namespace TumbleBitSetup
         /// <returns>Hashed result as a 256 Bytes array (2048 Bits)</returns>
         internal static byte[] MGF1_SHA256(byte[] data, int keySize)
         {
-            byte[] output = new byte[keySize / 8];
+            byte[] output = new byte[GetByteLength(keySize)];
             Sha256Digest sha256 = new Sha256Digest();
             var generator = new Mgf1BytesGenerator(sha256);
             generator.Init(new MgfParameters(data));
@@ -27,19 +28,21 @@ namespace TumbleBitSetup
         }
 
         /// <summary>
-        /// Combines two ByteArrays
+        /// Combines two or more byteArrays
         /// </summary>
-        /// <param name="arr1">First array</param>
-        /// <param name="arr2">Second array</param>
+        /// <param name="arrays">List of arrays to combine</param>
         /// <returns>The resultant combined list</returns>
-        internal static byte[] Combine(byte[] arr1, byte[] arr2)
+        internal static byte[] Combine(params byte[][] arrays)
         {
-            var len = arr1.Length + arr2.Length;
+            // From NTumbleBit https://github.com/NTumbleBit/NTumbleBit/blob/master/NTumbleBit/Utils.cs#L61
+            var len = arrays.Select(a => a.Length).Sum();
+            int offset = 0;
             var combined = new byte[len];
-
-            System.Buffer.BlockCopy(arr1, 0, combined, 0, arr1.Length);
-            System.Buffer.BlockCopy(arr2, 0, combined, arr1.Length, arr2.Length);
-
+            foreach (var array in arrays)
+            {
+                Array.Copy(array, 0, combined, offset, array.Length);
+                offset += array.Length;
+            }
             return combined;
         }
 
@@ -50,9 +53,9 @@ namespace TumbleBitSetup
         /// <returns></returns>
         internal static int GetOctetLen(int x)
         {
-            return (int)Math.Ceiling((1.0 / 8.0) * Math.Log(x, 2));
+            return (int)Math.Ceiling((1.0 / 8.0) * Math.Log(x+1, 2));
         }
-
+        
         /// <summary>
         /// Generates a list of primes up to and including the input bound
         /// </summary>
@@ -95,8 +98,6 @@ namespace TumbleBitSetup
         /// <returns></returns> 
         internal static byte[] I2OSP(int x, int xLen)
         {
-            byte[] outBytes = new byte[xLen];
-
             if (x < 0)
                 throw new ArgumentOutOfRangeException("only positive integers");
 
@@ -104,13 +105,15 @@ namespace TumbleBitSetup
             if (BigInteger.ValueOf(x).CompareTo(BigInteger.ValueOf(256).Pow(xLen)) >= 0)
                 throw new ArithmeticException("integer too large");
 
+            byte[] outBytes = new byte[xLen];
+
             // converts x to an unsigned byteArray.
             for (int i = 0; (x > 0) && (i < outBytes.Length); i++)
             {
                 outBytes[i] = (byte)(x % 256);
                 x /= 256;
             }
-
+            
             // make sure the output is BigEndian
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(outBytes, 0, outBytes.Length);
@@ -126,8 +129,6 @@ namespace TumbleBitSetup
         /// <returns></returns> 
         internal static byte[] I2OSP(BigInteger x, int xLen)
         {
-            byte[] outBytes = new byte[xLen];
-
             var N256 = BigInteger.ValueOf(256);
 
             if (x.CompareTo(BigInteger.Zero) < 0)
@@ -136,6 +137,8 @@ namespace TumbleBitSetup
             // checks If x >= 256^xLen
             if (x.CompareTo(N256.Pow(xLen)) >= 0)
                 throw new ArithmeticException("integer too large");
+
+            byte[] outBytes = new byte[xLen];
 
             // converts x to an unsigned byteArray.
             for (int i = 0; (x.CompareTo(BigInteger.Zero) > 0) && (i < outBytes.Length); i++)
@@ -161,7 +164,7 @@ namespace TumbleBitSetup
             int i;
 
             // To skip the first leading zeros (if they exist)
-            for (i = 0; (x[i] == 0x00) && (i < x.Length); i++)
+            for (i = 0; (i < x.Length) && (x[i] == 0x00); i++)
                 continue;
             i--;
 
@@ -174,6 +177,60 @@ namespace TumbleBitSetup
             }
             else
                 return new BigInteger(1, x);
+        }
+
+        internal static byte[] SHA256(byte[] data)
+        {
+            return SHA256(data, 0, data.Length);
+        }
+        
+        /// <summary>
+        /// A SHA256 hashing oracle (H_2 in the setup)
+        /// </summary>
+        /// <param name="data">message to be hashed</param>
+        /// <param name="offset">offset in the input message</param>
+        /// <param name="count">Amount of bytes to be hashed in the message</param>
+        /// <returns></returns>
+        internal static byte[] SHA256(byte[] data, int offset, int count)
+        {
+			Sha256Digest sha256 = new Sha256Digest();
+			sha256.BlockUpdate(data, offset, count);
+			byte[] rv = new byte[32];
+			sha256.DoFinal(rv, 0);
+			return rv;
+        }
+
+        /// <summary>
+        /// Truncates k-bits from the source byteArray.
+        /// </summary>
+        /// <param name="srcArray"></param>
+        /// <param name="k"> Amount of bits to truncate</param>
+        /// <returns>byteArray with k-bits</returns>
+        internal static byte[] TruncateToKbits(byte[] srcArray, int k)
+        {
+            // Number of bytes needed to represent k bits
+            int nBytes = GetByteLength(k);
+
+            // Initialize an output array 
+            byte[] dstArray = new byte[nBytes];
+
+            // Fill dstArray with the first nBytes of srcArray
+            System.Buffer.BlockCopy(srcArray, 0, dstArray, 0, nBytes);
+
+            return dstArray;
+        }
+
+        /// <summary>
+        /// Returns the amount of bytes needed to represent the given bits
+        /// </summary>
+        /// <param name="nBits">Number of Bits</param>
+        /// <returns></returns>
+        internal static int GetByteLength(int nBits)
+        {
+            if (nBits < 0)
+                throw new ArgumentOutOfRangeException("Invalid number of bits");
+            int BitsPerByte = 8;
+            return (nBits + BitsPerByte - 1) / BitsPerByte;
         }
     }
 }

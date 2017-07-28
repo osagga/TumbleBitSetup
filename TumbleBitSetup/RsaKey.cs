@@ -77,33 +77,32 @@ namespace TumbleBitSetup
         /// <returns>RSA key pair</returns>
         internal static AsymmetricCipherKeyPair GeneratePrivate(BigInteger p, BigInteger q, BigInteger e)
         {
-            BigInteger n, d, pSub1, qSub1, phi;
+            BigInteger n = p.Multiply(q);
 
-            n = p.Multiply(q);
-
-            pSub1 = p.Subtract(BigInteger.One);
-            qSub1 = q.Subtract(BigInteger.One);
-            phi = pSub1.Multiply(qSub1);
+            BigInteger One = BigInteger.One;
+            BigInteger pSub1 = p.Subtract(One);
+            BigInteger qSub1 = q.Subtract(One);
+            BigInteger gcd = pSub1.Gcd(qSub1);
+            BigInteger lcm = pSub1.Divide(gcd).Multiply(qSub1);
 
             //
             // calculate the private exponent
             //
+            BigInteger d = e.ModInverse(lcm);
 
-            d = e.ModInverse(phi);
+            if (d.BitLength <= q.BitLength)
+                throw new ArgumentException("Invalid RSA q value");
 
             //
             // calculate the CRT factors
             //
-            BigInteger dP, dQ, qInv;
-
-            dP = d.Remainder(pSub1);
-            dQ = d.Remainder(qSub1);
-            qInv = q.ModInverse(p);
+            BigInteger dP = d.Remainder(pSub1);
+            BigInteger dQ = d.Remainder(qSub1);
+            BigInteger qInv = q.ModInverse(p);
 
             return new AsymmetricCipherKeyPair(
                 new RsaKeyParameters(false, n, e),
                 new RsaPrivateCrtKeyParameters(n, e, d, p, q, dP, dQ, qInv));
-
         }
 
         internal byte[] ToBytes()

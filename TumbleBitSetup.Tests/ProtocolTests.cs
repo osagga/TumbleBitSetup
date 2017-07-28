@@ -685,7 +685,7 @@ namespace TumbleBitSetup.Tests
             PoupardStern.GetW(pubKey, ps, xValues, k, keySize, out BigInteger w);
 
             // Check that the bitLength of w equals to k.
-            Assert.IsTrue(w.BitLength.Equals(k));
+            Assert.IsTrue(w.BitLength <= k);
         }
         
         // unit tests for main functions

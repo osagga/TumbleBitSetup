@@ -51,6 +51,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Benchmark.cs" />
     <Compile Include="ProtocolTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SamplesData.cs" />

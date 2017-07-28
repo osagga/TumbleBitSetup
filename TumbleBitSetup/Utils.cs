@@ -21,8 +21,6 @@ namespace TumbleBitSetup
         {
             byte[] output = new byte[GetByteLength(keySize)];
             Sha256Digest sha256 = new Sha256Digest();
-            // Fix this, I don't think we need to use "ShortenedDigest"
-            //var generator = new Mgf1BytesGenerator(new ShortenedDigest(sha256, 20));
             var generator = new Mgf1BytesGenerator(sha256);
             generator.Init(new MgfParameters(data));
             generator.GenerateBytes(output, 0, output.Length);

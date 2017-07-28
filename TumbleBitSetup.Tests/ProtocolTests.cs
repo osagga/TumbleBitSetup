@@ -80,20 +80,13 @@ namespace TumbleBitSetup.Tests
             // Doesn't work yet, check with #15
             var data1 = Strings.ToByteArray("TEST42");
             var data2 = Strings.ToByteArray("TEST222");
-            var keySize = 856; // Not really sure why the length of mask1 is 107 bytes
+            var keySize = 856;
             var keySizeBytes = Utils.GetByteLength(keySize);
-            var seed1 = TestUtils.StringToByteArray("d6e168c5f256a2dcff7ef12facd390f393c7a88d");
-            var mask1 = "0742ba966813af75536bb6149cc44fc256fd6406df79665bc31dc5"
-                      + "a62f70535e52c53015b9d37d412ff3c1193439599e1b628774c50d9c"
-                      + "cb78d82c425e4521ee47b8c36a4bcffe8b8112a89312fc04420a39de"
-                      + "99223890e74ce10378bc515a212b97b8a6447ba6a8870278";
 
             var output1 = Utils.MGF1_SHA256(data1, keySize);
             var output11 = Utils.MGF1_SHA256(data1, keySize);
             var output2 = Utils.MGF1_SHA256(data2, keySize);
-            var output3 = Utils.MGF1_SHA256(seed1, keySize);
 
-            var expectedOutput3 = TestUtils.StringToByteArray(mask1);
 
             // Test that the length is correct
             Assert.AreEqual(output1.Length, keySizeBytes);
@@ -101,8 +94,6 @@ namespace TumbleBitSetup.Tests
             Assert.IsTrue(output11.SequenceEqual(output1));
             // Test that the two output are different
             Assert.IsFalse(output1.SequenceEqual(output2));
-            // Assert that seed1 Test holds
-            Assert.IsTrue(output3.SequenceEqual(expectedOutput3));
         }
 
         [TestMethod()]

@@ -10,7 +10,7 @@ namespace TumbleBitSetup.Tests
     public class Benchmark
     {
         public byte[] ps = Strings.ToByteArray("public string");
-        public double iterations = 2.0;
+        public double iterations = 100.0;
         public BigInteger Exp = BigInteger.ValueOf(65537);
         public Stopwatch sw = new Stopwatch();
 
@@ -18,7 +18,7 @@ namespace TumbleBitSetup.Tests
         public void BenchmarkPermutationTest()
         {
             var alphaList = new int[6] { 41, 997, 4999, 7649, 20663, 33469 };
-            var keySizeList = new int[3] { 1024, 2048, 4096 };
+            var keySizeList = new int[3] { 512, 1024, 2048};
             Console.WriteLine("PermutationTest Protocol, alpha, keyLength, ProvingTime, VerifyingTime");
 
             foreach (int alpha in alphaList)
@@ -42,7 +42,9 @@ namespace TumbleBitSetup.Tests
         public void BenchmarkPoupardStern()
         {
             var kList = new int[3] { 128, 80, 120 };
-            var keySizeList = new int[3] { 1024, 2048, 4096 };
+            var keySizeList = new int[3] { 768, 1024, 2048 };
+            Console.WriteLine("PoupardStern Protocol, keyLength, k, ProvingTime, VerifyingTime");
+
 
             foreach (int k in kList)
             {
@@ -50,13 +52,15 @@ namespace TumbleBitSetup.Tests
                 {
                     double ProvingTime = 0.0;
                     double VerifyingTime = 0.0;
+                    Console.Write(" ,{0} ,{1}", keySize, k);
                     for (int i = 0; i < iterations; i++)
                     {
                         _ProvingAndVerifyingTest2(Exp, keySize, k, out double subPTime, out double subVTime);
+                        Console.WriteLine(" ,{0} ,{1} ", subPTime, subVTime);
                         ProvingTime += subPTime;
                         VerifyingTime += subVTime;
                     }
-                    Console.WriteLine("PoupardStern Protocol | k: {0} | keyLength: {1} | ProvingTime: {2} secs | VerifyingTime: {3} secs", k, keySize, ProvingTime / iterations, VerifyingTime / iterations);
+                    Console.WriteLine("");
                 }
             }
         }

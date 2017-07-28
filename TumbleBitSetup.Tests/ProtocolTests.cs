@@ -256,16 +256,35 @@ namespace TumbleBitSetup.Tests
         public void CheckAlphaNTest2()
         {
             // CheckAlphaN outputs fail if N is even.
+            // Sanity check
+            var keyPair = new RsaKey(Exp, keySize);
+
+            var privKey = keyPair._privKey;
+            var pubKey = new RsaPubKey(keyPair);
+
+            var Modulus = pubKey._pubKey.Modulus;
+
+            var ModBytes = Modulus.ToByteArray();
+            // Make the LSB a zero to make it even.
+            ModBytes[ModBytes.Length - 1] &= (byte)0xfe;
+
+            Modulus = new BigInteger(1, ModBytes);
+
+            // Assert CheckAlphaN returns False
+            Assert.IsFalse(PermutationTest.CheckAlphaN(alpha, Modulus));
+        }
+
+        [TestMethod()]
+        public void CheckAlphaNTest3()
+        {
+            // CheckAlphaN outputs fail if N is even (2 * alpha).
             BigInteger p, q;
 
             // p is Two (Even)
             p = BigInteger.Two;
 
-            int pbitlength = p.BitLength;
-            int qbitlength = (keySize - pbitlength);
-
             // Generate q to fill N
-            q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
+            q = BigInteger.ValueOf(alpha);
 
             var Modulus = p.Multiply(q);
 

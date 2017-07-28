@@ -318,19 +318,21 @@ namespace TumbleBitSetup.Tests
         public void ProvingAndVerifyingTest()
         {
             // repeating the test "iterValid" times
-            // TODO: Different k test?
-            for (int i = 0; i < iterValid; i++)
-            {
-                Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 1001, alpha)); // weird length key case
-                Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 245, alpha)); // weird length key case
-                Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 4096, alpha));
-                Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 2048, alpha));
-                Assert.IsTrue(_ProvingAndVerifyingTest(new BigInteger("65537"), 2048, 7649)); // Case where m1 != m2
-                Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 1024, alpha));
-            }
+            var alphaList = new int[6] { 41, 997, 4999, 7649, 20663, 33469 };
+            var keySizeList = new int[3] { 1024, 2048, 4096 };
+            var kList = new int[3] { 128, 80, 120 };
 
+            foreach (int alpha in alphaList)
+                foreach (int keySize in keySizeList)
+                    foreach (int k in kList)
+                        for (int i = 0; i < iterValid; i++)
+                            Assert.IsTrue(_ProvingAndVerifyingTest(Exp, keySize, alpha, k));
+
+            Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 1001, alpha, 128)); // weird length key case
+            Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 245, alpha, 128)); // weird length key case
+            Assert.IsTrue(_ProvingAndVerifyingTest(new BigInteger("65537"), 2048, 7649, alpha)); // Case where m1 != m2
         }
-        public bool _ProvingAndVerifyingTest(BigInteger Exp, int keySize, int alpha)
+        public bool _ProvingAndVerifyingTest(BigInteger Exp, int keySize, int alpha, int k)
         {
             // Sanity check
             var keyPair = new RsaKey(Exp, keySize);
@@ -338,9 +340,9 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps, k);
 
-            return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
+            return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps, k);
         }
 
         [TestMethod()]
@@ -692,15 +694,16 @@ namespace TumbleBitSetup.Tests
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void ProvingAndVerifyingTest()
         {
-            for (int i = 0; i < iterValid; i++)
-            {
-                // (Exp, keySize, k)
-                Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 1001, 128)); // weird length keySize
-                Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 4096, 128));
-                Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 2048, 128));
-                Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 1024, 128));
-            }
+            var kList = new int[3] { 128, 80, 120 };
+            var keySizeList = new int[3] { 1024, 2048, 4096 };
 
+            foreach (int k in kList)
+                foreach(int keySize in keySizeList)
+                    for (int i = 0; i < iterValid; i++)
+                        // (Exp, keySize, k)
+                        Assert.IsTrue(_ProvingAndVerifyingTest(Exp, keySize, k));
+
+            Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 1001, 128)); // weird length keySize
             Assert.IsFalse(_ProvingAndVerifyingTest(Exp, 245, 128)); // throws an exception
 
         }

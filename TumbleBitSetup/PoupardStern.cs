@@ -9,7 +9,7 @@ namespace TumbleBitSetup
     public class PoupardStern
     {
         /// <summary>
-        /// Proving Algorithm specified in page 12 (3.2.1) of the setup
+        /// Proving Algorithm specified in (3.2.1) of the setup
         /// </summary> 
         /// <param name="p">P in the secret key</param>
         /// <param name="q">Q in the secret key</param>
@@ -19,13 +19,15 @@ namespace TumbleBitSetup
         /// <returns>List of x values and y</returns>
         public static Tuple<BigInteger[], BigInteger> Proving(BigInteger p, BigInteger q, BigInteger e, int keyLength, byte[] psBytes, int k = 128)
         {
-            k = Utils.GetByteLength(k) * 8;
             BigInteger y;
             BigInteger Two = BigInteger.Two;
             // 2^{|N| - 1}
             BigInteger lowerLimit = Two.Pow(keyLength - 1);
             // 2^{|N|}
             BigInteger upperLimit = Two.Pow(keyLength);
+
+            // Rounding up k to the closest multiple of 8
+            k = Utils.GetByteLength(k) * 8;
 
             // Generate a keyPair from p, q and e
             var keyPair = new RsaKey(p, q, e);
@@ -62,10 +64,8 @@ namespace TumbleBitSetup
             // Generate K
             GetK(k, out int BigK);
 
-            // Initialize list of x and z values
+            // Initialize and generate list of z values
             BigInteger[] zValues = new BigInteger[BigK];
-
-            // Generate the list of z Values
             for (int i = 0; i < BigK; i++)
                 zValues[i] =  SampleFromZnStar(pubKey, psBytes, i, BigK, keyLength);
 
@@ -101,7 +101,7 @@ namespace TumbleBitSetup
         }
 
         /// <summary>
-        /// Verifying Algorithm specified in page 13 (3.3) of the setup
+        /// Verifying Algorithm specified in (3.3) of the setup
         /// </summary>
         /// <param name="pubKey">Public key used</param>
         /// <param name="xValues">List of x_i values</param>
@@ -112,10 +112,12 @@ namespace TumbleBitSetup
         /// <returns>true if the xValues verify, false otherwise</returns>
         public static bool Verifying(RsaPubKey pubKey, BigInteger[] xValues, BigInteger y, int keyLength, byte[] psBytes, int k = 128)
         {
-            k = Utils.GetByteLength(k) * 8;
             BigInteger rPrime;
             BigInteger lowerLimit = BigInteger.Two.Pow(keyLength - 1);
             BigInteger upperLimit = BigInteger.Two.Pow(keyLength);
+            
+            // Rounding up k to the closest multiple of 8
+            k = Utils.GetByteLength(k) * 8;
 
             var Modulus = pubKey._pubKey.Modulus;
             var Exponent = pubKey._pubKey.Exponent;
@@ -147,7 +149,7 @@ namespace TumbleBitSetup
             // Computing rPrime
             rPrime = y.Subtract(Modulus.Multiply(w));
 
-            // verifying the x values
+            // Verifying x values
             for (int i = 0; i < BigK; i++)
             {
                 var z_i = SampleFromZnStar(pubKey, psBytes, i, BigK, keyLength);
@@ -157,11 +159,12 @@ namespace TumbleBitSetup
                 if (!(xValues[i].Equals(rs)))
                     return false;
             }
+
             return true;
         }
 
         /// <summary>
-        /// Generates a z_i value as specified in page 14 (3.3.1) of the setup
+        /// Generates a z_i value as specified in (3.3.1) of the setup
         /// </summary>
         /// <param name="pubKey">Public key used</param>
         /// <param name="ps">public string specified in the setup</param>
@@ -242,7 +245,7 @@ namespace TumbleBitSetup
         }
 
         /// <summary>
-        /// Calculates the value of K as specified in the equation 7 in the setup
+        /// Calculates the value of K as specified in equation 7 of the setup
         /// </summary>
         /// <param name="k">Security parameter specified in the setup</param>
         internal static void GetK(int k, out int BigK)

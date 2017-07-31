@@ -89,6 +89,7 @@ namespace TumbleBitSetup.Tests
 
         public void _ProvingAndVerifyingTest1(BigInteger Exp, int keySize, int alpha, int k, out double ProvingTime, out double VerifyingTime)
         {
+            sw.Reset(); //Reset
             // PermutationTest Protocol
             var keyPair = new RsaKey(Exp, keySize);
 
@@ -111,6 +112,7 @@ namespace TumbleBitSetup.Tests
         }
         public void _ProvingAndVerifyingTest2(BigInteger Exp, int keySize, int k, out double ProvingTime, out double VerifyingTime)
         {
+            sw.Reset(); //Reset
             // PoupardStern Protocol
             var keyPair = new RsaKey(Exp, keySize);
 
@@ -133,9 +135,11 @@ namespace TumbleBitSetup.Tests
             sw.Stop();  //Verifying stops
 
             VerifyingTime = sw.Elapsed.TotalSeconds;
+
         }
         public void _CheckAlphaN(BigInteger Exp, int keySize, int alpha, out double alphaTime)
         {
+            sw.Reset(); //Reset
             var keyPair = new RsaKey(Exp, keySize);
 
             var privKey = keyPair._privKey;
@@ -149,5 +153,6 @@ namespace TumbleBitSetup.Tests
 
             alphaTime = sw.Elapsed.TotalSeconds;
         }
+
     }
 }

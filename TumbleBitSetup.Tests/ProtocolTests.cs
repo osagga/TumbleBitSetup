@@ -212,9 +212,8 @@ namespace TumbleBitSetup.Tests
             {
                 // Convert rho value to a number
                 var num = Utils.OS2IP(rhoValues[i]);
-                // Assert it's less than N
-                //Assert.IsTrue(num.CompareTo(Modulus) < 0);
-                Assert.IsTrue(Modulus.Subtract(num).LongValue > 0);
+                // Assert the number is less than N
+                Assert.IsTrue(num.CompareTo(Modulus) < 0);
                 // Assert GCD(rho, N) == 1
                 Assert.IsTrue(Modulus.Gcd(num).Equals(BigInteger.One));
             }
@@ -640,8 +639,7 @@ namespace TumbleBitSetup.Tests
             {
                 var num = PoupardStern.SampleFromZnStar(pubKey, ps, i, BigK, keySize);
                 // Assert that num is < N
-                //Assert.IsTrue(num.CompareTo(Modulus) < 0);
-                Assert.IsTrue(Modulus.Subtract(num).LongValue > 0);
+                Assert.IsTrue(num.CompareTo(Modulus) < 0);
             }
         }
 

@@ -175,26 +175,28 @@ namespace TumbleBitSetup
         internal static BigInteger SampleFromZnStar(RsaPubKey pubKey, byte[] psBytes, int i, int BigK, int keyLength)
         {
             BigInteger Modulus = pubKey._pubKey.Modulus;
-            int j = 2;
+
             // Octet Length of i
             int iLen = Utils.GetOctetLen(BigK);
-            // Byte representation of i
+            // OctetString of i
             var EI = Utils.I2OSP(i, iLen);
             // ASN.1 encoding of the PublicKey
             var keyBytes = pubKey.ToBytes();
-            // Combine the octet string
+            // Combine the OctetString
+            // TODO: Combine now takes multiple lists as input, so no need for the double call
             var combined = Utils.Combine(keyBytes, Utils.Combine(psBytes,EI));
+            int j = 2;
             for (;;)
             {
                 // OctetLength of j
                 var jLen = Utils.GetOctetLen(j);
-                // Byte representation of j
+                // OctetString of j
                 var EJ = Utils.I2OSP(j, jLen);
                 // Combine EJ with the rest of the string
                 var sub_combined = Utils.Combine(combined, EJ);
                 // Pass the bytes to H_1
                 byte[] ER = Utils.MGF1_SHA256(sub_combined, keyLength);
-                // Convert from Bytes to BigInteger
+                // Convert from OctetString to BigInteger
                 BigInteger z_i = Utils.OS2IP(ER);
                 // Check if the output is larger or equal to N OR GCD(z_i, N) != 1
                 if (z_i.CompareTo(Modulus) >= 0 || !(z_i.Gcd(Modulus).Equals(BigInteger.One)))
@@ -235,6 +237,7 @@ namespace TumbleBitSetup
                 ExComb = Utils.Combine(ExComb, tmp);
             }
             // Concatenating the rest of s
+            // TODO: Combine now takes multiple lists as input, so no need for the double call
             var s = Utils.Combine(keyBytes, Utils.Combine(psBytes, ExComb));
             // Hash the OctetString
             var BigW = Utils.SHA256(s);

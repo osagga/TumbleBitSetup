@@ -15,10 +15,46 @@ namespace TumbleBitSetup.Tests
         public Stopwatch sw = new Stopwatch();
 
         [TestMethod()]
+        public void microBenchmarkPermutationTest()
+        {
+            //var alphaList = new int[6] { 41, 997, 4999, 7649, 20663, 33469 };
+            //var keySizeList = new int[3] { 512, 1024, 2048};
+            //var alphaList = new int[12] { 43, 991, 1723, 1777, 3391, 3581, 7649, 8663, 20663, 30137, 71471, 352831 }; //Spredsheet values
+            var alphaList = new int[1] { 30137}; //microBenchmark value
+            var keySizeList = new int[1] { 2048 }; //Spreadsheet values
+            Console.WriteLine("PermutationTest Protocol, alpha, keyLength, ProvingTime, VerifyingTime");
+
+            foreach (int alpha in alphaList)
+            {
+                foreach (int keySize in keySizeList)
+                {
+                    double time1 = 0.0; // Benching setup
+                    double time2 = 0.0; // Benching calculating limits
+                    double time3 = 0.0; // Benching checks
+                    double time4 = 0.0; // Benching the verification process
+                    for (int i = 0; i < iterations; i++)
+                    {
+                        // Fixing k at 128
+                        _ProvingAndVerifyingTest11(Exp, keySize, alpha, 128, out double subTime1, out double subTime2, out double subTime3, out double subTime4);
+                        Console.WriteLine("{0}, {1}, {2}, {3}", subTime1, subTime2, subTime3, subTime4);
+                        time1 += subTime1;
+                        time2 += subTime2;
+                        time3 += subTime3;
+                        time4 += subTime4;
+                    }
+
+                    Console.WriteLine(" ,{0} ,{1} ,Benching setup: {2} ,Benching calculating limits: {3},Benching checks: {4},Benching the verification process: {5}", alpha, keySize, time1 / iterations, time2 / iterations, time3 / iterations, time4 / iterations);
+                }
+            }
+        }
+
+        [TestMethod()]
         public void BenchmarkPermutationTest()
         {
-            var alphaList = new int[6] { 41, 997, 4999, 7649, 20663, 33469 };
-            var keySizeList = new int[3] { 512, 1024, 2048};
+            //var alphaList = new int[6] { 41, 997, 4999, 7649, 20663, 33469 };
+            //var keySizeList = new int[3] { 512, 1024, 2048};
+            var alphaList = new int[12] { 43, 991, 1723, 1777, 3391, 3581, 7649, 8663, 20663, 30137, 71471, 352831 }; //Spredsheet values
+            var keySizeList = new int[1] { 2048 }; //Spredsheet values
             Console.WriteLine("PermutationTest Protocol, alpha, keyLength, ProvingTime, VerifyingTime");
 
             foreach (int alpha in alphaList)
@@ -29,7 +65,7 @@ namespace TumbleBitSetup.Tests
                     double VerifyingTime = 0.0;
                     for (int i = 0; i < iterations; i++)
                     {
-                        // Fixing k at 128, should I try with multiple k values?
+                        // Fixing k at 128
                         _ProvingAndVerifyingTest1(Exp, keySize, alpha, 128, out double subPTime, out double subVTime);
                         ProvingTime += subPTime;
                         VerifyingTime += subVTime;
@@ -67,8 +103,12 @@ namespace TumbleBitSetup.Tests
         [TestMethod()]
         public void BenchmarkCheckAlphaN()
         {
-            var alphaList = new int[6] { 41, 997, 4999, 7649, 20663, 33469 };
-            var keySizeList = new int[3] {512, 1024, 2048};
+            //var alphaList = new int[6] { 41, 997, 4999, 7649, 20663, 33469 };
+            //var keySizeList = new int[3] {512, 1024, 2048};
+
+            var alphaList = new int[12] { 43, 991, 1723, 1777, 3391, 3581, 7649, 8663, 20663, 30137, 71471, 352831 }; //Spredsheet values
+            var keySizeList = new int[1] { 2048 }; //Spredsheet values
+
             Console.WriteLine("checkAlphaN , alpha, keyLength, Check Time");
 
             foreach (int alpha in alphaList)
@@ -78,13 +118,25 @@ namespace TumbleBitSetup.Tests
                     double CheckTime = 0.0;
                     for (int i = 0; i < iterations; i++)
                     {
-                        // Fixing k at 128, should I try with multiple k values?
                         _CheckAlphaN(Exp, keySize, alpha, out double subCheckTime);
                         CheckTime += subCheckTime;
                     }
                     Console.WriteLine(" ,{0} ,{1} ,{2}", alpha, keySize, CheckTime / iterations);
                 }
             }
+        }
+
+        public void _ProvingAndVerifyingTest11(BigInteger Exp, int keySize, int alpha, int k, out double time1, out double time2, out double time3, out double time4)
+        {
+            // PermutationTest Protocol
+            var keyPair = new RsaKey(Exp, keySize);
+
+            var privKey = keyPair._privKey;
+            var pubKey = new RsaPubKey(keyPair);
+
+            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
+
+            PermutationTest.BenchVerifying(pubKey, signature, alpha, keySize, ps, out time1, out time2, out time3, out time4);
         }
 
         public void _ProvingAndVerifyingTest1(BigInteger Exp, int keySize, int alpha, int k, out double ProvingTime, out double VerifyingTime)
@@ -94,16 +146,14 @@ namespace TumbleBitSetup.Tests
 
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
-            
-            sw.Start(); //Proving start
+
+            sw.Restart(); //Proving start
             byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
             sw.Stop();  //Proving ends
 
             ProvingTime = sw.Elapsed.TotalSeconds;
 
-            sw.Reset(); //Reset
-
-            sw.Start(); //Verifying start
+            sw.Restart(); //Verifying start
             PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
             sw.Stop();  //Verifying stops
 
@@ -117,7 +167,7 @@ namespace TumbleBitSetup.Tests
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
 
-            sw.Start(); //Proving start
+            sw.Restart(); //Proving start
             var outputTuple = PoupardStern.Proving(privKey.P, privKey.Q, privKey.PublicExponent, keySize, ps, k);
             sw.Stop();  //Proving ends
 
@@ -126,13 +176,12 @@ namespace TumbleBitSetup.Tests
             var xValues = outputTuple.Item1;
             var y = outputTuple.Item2;
 
-            sw.Reset(); //Reset
-
-            sw.Start(); //Verifying start
+            sw.Restart(); //Verifying start
             PoupardStern.Verifying(pubKey, xValues, y, keySize, ps, k);
             sw.Stop();  //Verifying stops
 
             VerifyingTime = sw.Elapsed.TotalSeconds;
+
         }
         public void _CheckAlphaN(BigInteger Exp, int keySize, int alpha, out double alphaTime)
         {
@@ -143,11 +192,12 @@ namespace TumbleBitSetup.Tests
 
             var Modulus = pubKey._pubKey.Modulus;
 
-            sw.Start(); //Check AlphaN start
+            sw.Restart(); //Check AlphaN start
             PermutationTest.CheckAlphaN(alpha, Modulus);
             sw.Stop();  //Check AlphaN ends
 
             alphaTime = sw.Elapsed.TotalSeconds;
         }
+
     }
 }

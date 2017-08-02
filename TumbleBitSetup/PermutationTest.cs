@@ -1,15 +1,17 @@
 ﻿using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
+using System.Diagnostics;
 using System;
 using System.Linq;
 using System.Collections.Generic;
 
 namespace TumbleBitSetup
 {
+
     // TODO: edit the page number references in the comments or remove them.
     public class PermutationTest
     {
+        public static Stopwatch sw = new Stopwatch();
         /// <summary>
         /// Proving Algorithm specified in (2.8.1) of the setup
         /// </summary>
@@ -51,6 +53,75 @@ namespace TumbleBitSetup
                     sigs[i] = keyPair.Decrypt(rhoValues[i]);
             }
             return sigs;
+        }
+
+        public static void BenchVerifying(RsaPubKey pubKey, byte[][] sigs, int alpha, int keyLength, byte[] psBytes, out double time1, out double time2, out double time3, out double time4, int k = 128)
+        {
+            // Benching setup
+            sw.Restart();
+            BigInteger Two = BigInteger.Two;
+            var Modulus = pubKey._pubKey.Modulus;
+            var Exponent = pubKey._pubKey.Exponent;
+            sw.Stop();
+            time1 = sw.ElapsedMilliseconds;
+
+            // Benching calculating limits
+            sw.Restart();
+            BigInteger lowerLimit = Two.Pow(keyLength - 1);
+            BigInteger upperLimit = Two.Pow(keyLength);
+            sw.Stop();
+            time2 = sw.ElapsedMilliseconds;
+
+            // Benching checks
+            sw.Restart();
+            // if N < 2^{KeySize-1}
+            if (Modulus.CompareTo(lowerLimit) < 0)
+                ;
+            System.Threading.Thread.Sleep(500);
+            // if N >= 2^{KeySize}
+            if (Modulus.CompareTo(upperLimit) >= 0)
+                ;
+            sw.Stop();
+            time3 = sw.ElapsedMilliseconds;
+
+            // Generate m1 and m2
+            Get_m1_m2((decimal)alpha, Exponent.IntValue, k, out int m1, out int m2);
+
+            // Verifying m2
+            if (!m2.Equals(sigs.Length))
+                ;
+
+            // Verify alpha and N
+            if (!CheckAlphaN(alpha, Modulus))
+                ;
+
+            // Generate a "weird" public key
+            var eN = Modulus.Multiply(Exponent);
+            var pubKeyPrime = new RsaPubKey(new RsaKeyParameters(false, Modulus, eN));
+
+            // Generate list of rho values
+            GetRhos(m2, psBytes, pubKey, keyLength, out byte[][] rhoValues);
+
+            // Benching the verification process
+            sw.Restart();
+            // Verifying the signatures
+            for (int i = 0; i < m2; i++)
+            {
+                if (i <= m1)
+                {
+                    var dec_sig = pubKeyPrime.Encrypt(sigs[i]);
+                    if (!dec_sig.SequenceEqual(rhoValues[i]))
+                        ;
+                }
+                else
+                {
+                    var dec_sig = pubKey.Encrypt(sigs[i]);
+                    if (!dec_sig.SequenceEqual(rhoValues[i]))
+                        ;
+                }
+            }
+            sw.Stop();
+            time4 = sw.ElapsedMilliseconds;
         }
 
         /// <summary>

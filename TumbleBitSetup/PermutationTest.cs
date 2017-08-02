@@ -12,6 +12,7 @@ namespace TumbleBitSetup
     public class PermutationTest
     {
         public static Stopwatch sw = new Stopwatch();
+        
         /// <summary>
         /// Proving Algorithm specified in (2.8.1) of the setup
         /// </summary>
@@ -31,9 +32,9 @@ namespace TumbleBitSetup
 
             // Generate private and public keys
             BigInteger N = p.Multiply(q);
-            var eN = N.Multiply(e);
+            BigInteger eN = N.Multiply(e);
 
-            // Generate a pair (pub, priv) of keys for e and eN
+            // Generate a pair (pub, sec) of keys for e and eN
             var keyPair = new RsaKey(p, q, e);
             var keyPrimePair = new RsaKey(p, q, eN);
 
@@ -55,7 +56,50 @@ namespace TumbleBitSetup
             return sigs;
         }
 
-        public static void BenchVerifying(RsaPubKey pubKey, byte[][] sigs, int alpha, int keyLength, byte[] psBytes, out double time1, out double time2, out double time3, out double time4, int k = 128)
+        public static byte[][] BenchProving(BigInteger p, BigInteger q, BigInteger e, int alpha, byte[] psBytes, out double time1, out double time2, int k = 128)
+        {
+            // Benching generating values
+            sw.Restart();
+
+            byte[][] sigs;
+
+            // Generate m1 and m2
+            Get_m1_m2((decimal)alpha, e.IntValue, k, out int m1, out int m2);
+
+            // Generate private and public keys
+            BigInteger N = p.Multiply(q);
+            BigInteger eN = N.Multiply(e);
+
+            // Generate a pair (pub, sec) of keys for e and eN
+            var keyPair = new RsaKey(p, q, e);
+            var keyPrimePair = new RsaKey(p, q, eN);
+
+            // Extract public key (N, e) from main key.
+            var pubKey = new RsaPubKey(keyPair);
+
+            // Generate list of rho values
+            GetRhos(m2, psBytes, pubKey, N.BitLength, out byte[][] rhoValues);
+
+            sw.Stop();
+            time1 = sw.Elapsed.Milliseconds;
+
+            // Benching the verification process
+            sw.Restart();
+            // Signing the Rho values
+            sigs = new byte[m2][];
+            for (int i = 0; i < m2; i++)
+            {
+                if (i <= m1)
+                    sigs[i] = keyPrimePair.Decrypt(rhoValues[i]);
+                else
+                    sigs[i] = keyPair.Decrypt(rhoValues[i]);
+            }
+            sw.Stop();
+            time2 = sw.Elapsed.TotalMilliseconds;
+            return sigs;
+        }
+
+        public static void BenchVerifying(RsaPubKey pubKey, byte[][] sigs, int alpha, int keyLength, byte[] psBytes, out double time1, out double time2, out double time3, out double time33, out double time4, int k = 128)
         {
             // Benching setup
             sw.Restart();
@@ -63,27 +107,28 @@ namespace TumbleBitSetup
             var Modulus = pubKey._pubKey.Modulus;
             var Exponent = pubKey._pubKey.Exponent;
             sw.Stop();
-            time1 = sw.ElapsedMilliseconds;
+            time1 = sw.Elapsed.TotalMilliseconds;
 
             // Benching calculating limits
             sw.Restart();
             BigInteger lowerLimit = Two.Pow(keyLength - 1);
             BigInteger upperLimit = Two.Pow(keyLength);
             sw.Stop();
-            time2 = sw.ElapsedMilliseconds;
+            time2 = sw.Elapsed.TotalMilliseconds;
 
             // Benching checks
             sw.Restart();
             // if N < 2^{KeySize-1}
             if (Modulus.CompareTo(lowerLimit) < 0)
                 ;
-            System.Threading.Thread.Sleep(500);
             // if N >= 2^{KeySize}
             if (Modulus.CompareTo(upperLimit) >= 0)
                 ;
             sw.Stop();
-            time3 = sw.ElapsedMilliseconds;
-
+            time3 = sw.Elapsed.TotalMilliseconds;
+            
+            // Benching generating values
+            sw.Restart();
             // Generate m1 and m2
             Get_m1_m2((decimal)alpha, Exponent.IntValue, k, out int m1, out int m2);
 
@@ -101,7 +146,8 @@ namespace TumbleBitSetup
 
             // Generate list of rho values
             GetRhos(m2, psBytes, pubKey, keyLength, out byte[][] rhoValues);
-
+            sw.Stop();
+            time33 = sw.Elapsed.Milliseconds;
             // Benching the verification process
             sw.Restart();
             // Verifying the signatures
@@ -121,7 +167,7 @@ namespace TumbleBitSetup
                 }
             }
             sw.Stop();
-            time4 = sw.ElapsedMilliseconds;
+            time4 = sw.Elapsed.TotalMilliseconds;
         }
 
         /// <summary>

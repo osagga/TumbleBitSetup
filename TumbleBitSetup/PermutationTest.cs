@@ -11,7 +11,7 @@ namespace TumbleBitSetup
     public class PermutationTest
     {
         /// <summary>
-        /// Proving Algorithm specified in page 7 (2.8.1) of the setup
+        /// Proving Algorithm specified in (2.8.1) of the setup
         /// </summary>
         /// <param name="p">P in the secret key</param>
         /// <param name="q">Q in the secret key</param>
@@ -54,7 +54,7 @@ namespace TumbleBitSetup
         }
 
         /// <summary>
-        /// Verifying Algorithm specified in page 8 (2.8.2) of the setup
+        /// Verifying Algorithm specified in (2.8.2) of the setup
         /// </summary>
         /// <param name="pubKey">Public Key used to verify the signatures</param>
         /// <param name="sigs">List of signatures to verify</param>
@@ -65,9 +65,11 @@ namespace TumbleBitSetup
         /// <returns> true if the signatures verify, false otherwise</returns>
         public static bool Verifying(RsaPubKey pubKey, byte[][] sigs, int alpha, int keyLength, byte[] psBytes, int k = 128)
         {
+
             BigInteger Two = BigInteger.Two;
             var Modulus = pubKey._pubKey.Modulus;
             var Exponent = pubKey._pubKey.Exponent;
+
             BigInteger lowerLimit = Two.Pow(keyLength - 1);
             BigInteger upperLimit = Two.Pow(keyLength);
 

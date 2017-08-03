@@ -65,10 +65,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PermutationTest\PermutationTestProof.cs" />
+    <Compile Include="PermutationTest\PermutationTestSetup.cs" />
+    <Compile Include="PoupardStern\PoupardSternSetup.cs" />
+    <Compile Include="PoupardStern\PoupardSternProof.cs" />
     <Compile Include="RsaKey.cs" />
     <Compile Include="RsaPubKey.cs" />
-    <Compile Include="PermutationTest.cs" />
-    <Compile Include="PoupardStern.cs" />
+    <Compile Include="PermutationTest\Implementation\PermutationTest.cs" />
+    <Compile Include="PoupardStern\Implementation\PoupardStern.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -88,5 +92,6 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

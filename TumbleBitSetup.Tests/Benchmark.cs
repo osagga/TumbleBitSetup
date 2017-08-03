@@ -94,43 +94,36 @@ namespace TumbleBitSetup.Tests
 
         public void _ProvingAndVerifyingTest1(BigInteger Exp, int keySize, int alpha, int k, out double ProvingTime, out double VerifyingTime)
         {
+            var setup = new PermutationTestSetup(ps, alpha, k);
             // PermutationTest Protocol
             var keyPair = new RsaKey(Exp, keySize);
 
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
-
             sw.Restart(); //Proving start
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
+            var signature = keyPair.CreatePermutationTestProof(setup);
             sw.Stop();  //Proving ends
 
             ProvingTime = sw.Elapsed.TotalSeconds;
 
             sw.Restart(); //Verifying start
-            PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
+            keyPair.PublicKey.VerifyPermutationTestProof(signature, setup);
             sw.Stop();  //Verifying stops
 
             VerifyingTime = sw.Elapsed.TotalSeconds;
         }
         public void _ProvingAndVerifyingTest2(BigInteger Exp, int keySize, int k, out double ProvingTime, out double VerifyingTime)
         {
+            var setup = new PoupardSternSetup(ps, k);
             // PoupardStern Protocol
             var keyPair = new RsaKey(Exp, keySize);
 
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
-
             sw.Restart(); //Proving start
-            var outputTuple = PoupardStern.Proving(privKey.P, privKey.Q, privKey.PublicExponent, keySize, ps, k);
+            var outputTuple = keyPair.CreatePoupardSternProof(setup);
             sw.Stop();  //Proving ends
 
             ProvingTime = sw.Elapsed.TotalSeconds;
 
-            var xValues = outputTuple.Item1;
-            var y = outputTuple.Item2;
-
             sw.Restart(); //Verifying start
-            PoupardStern.Verifying(pubKey, xValues, y, keySize, ps, k);
+            keyPair.PublicKey.VerifyPoupardSternProof(outputTuple, setup);
             sw.Stop();  //Verifying stops
 
             VerifyingTime = sw.Elapsed.TotalSeconds;

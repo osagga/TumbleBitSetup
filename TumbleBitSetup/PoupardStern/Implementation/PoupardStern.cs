@@ -6,7 +6,7 @@ using System;
 
 namespace TumbleBitSetup
 {
-    public class PoupardStern
+    internal class PoupardStern
     {
         /// <summary>
         /// Proving Algorithm specified in (3.2.1) of the setup

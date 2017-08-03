@@ -187,10 +187,10 @@ namespace TumbleBitSetup.Tests
         public int iterValid = 1; // Number of iterations for a valid test
         public int iterInValid = 1; // Number of iterations for an invalid test
 
-        int alpha = 41;
-        int keySize = 2048;
         BigInteger Exp = BigInteger.Three;
-        public byte[] ps = Strings.ToByteArray("public string");
+        PermutationTestSetup setup = new PermutationTestSetup(Strings.ToByteArray("public string"), 41, 2048);
+        byte[] ps = Strings.ToByteArray("public string");
+        int alpha = 41;
 
         // unit tests for sub-functions
         [TestMethod()]
@@ -198,7 +198,7 @@ namespace TumbleBitSetup.Tests
         {
             // GetRhos is really producing outputs rho that are<N and have GCD(N, rho) = 1
             int m2 = 11;
-            var keyPair = new RsaKey(Exp, keySize);
+            var keyPair = new RsaKey(Exp, setup.KeySize);
 
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
@@ -206,7 +206,7 @@ namespace TumbleBitSetup.Tests
             var Modulus = pubKey._pubKey.Modulus;
 
             // Generate list of rho values
-            PermutationTest.GetRhos(m2, ps, pubKey, keySize, out byte[][] rhoValues);
+            PermutationTest.GetRhos(m2, ps, pubKey, setup.KeySize, out byte[][] rhoValues);
 
             for (int i = 0; i < rhoValues.Length; i++)
             {
@@ -231,13 +231,13 @@ namespace TumbleBitSetup.Tests
             p = BigInteger.ValueOf(primeN);
 
             int pbitlength = p.BitLength;
-            int qbitlength = (keySize - pbitlength);
+            int qbitlength = (setup.KeySize - pbitlength);
 
             // Generate q
-            q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
+            q = TestUtils.GenQ(p, qbitlength, setup.KeySize, Exp);
 
             var Modulus = p.Multiply(q);
-            
+
             // Assert CheckAlphaN returns False
             Assert.IsFalse(PermutationTest.CheckAlphaN(alpha, Modulus));
         }
@@ -247,7 +247,7 @@ namespace TumbleBitSetup.Tests
         {
             // CheckAlphaN outputs fail if N is even.
             // Sanity check
-            var keyPair = new RsaKey(Exp, keySize);
+            var keyPair = new RsaKey(Exp, setup.KeySize);
 
             var privKey = keyPair._privKey;
             var pubKey = new RsaPubKey(keyPair);
@@ -326,20 +326,20 @@ namespace TumbleBitSetup.Tests
         {
             // Sanity check
             var keyPair = new RsaKey(Exp, keySize);
+            var setup2 = setup.Clone();
+            setup2.KeySize = keySize;
+            setup2.SecurityParameter = k;
+            setup2.Alpha = alpha;
 
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
-
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps, k);
-
-            return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps, k);
+            var signature = keyPair.CreatePermutationTestProof(setup2);
+            return keyPair.PublicKey.VerifyPermutationTestProof(signature, setup2);
         }
 
         [TestMethod()]
         public void DifferentNTest()
         {
             for (int i = 0; i < iterInValid; i++)
-                Assert.IsFalse(_DifferentNTest(Exp, 2048, alpha));
+                Assert.IsFalse(_DifferentNTest(Exp, 2048, setup.Alpha));
 
         }
         public bool _DifferentNTest(BigInteger Exp, int keySize, int alpha)
@@ -351,13 +351,8 @@ namespace TumbleBitSetup.Tests
             // A different key pair to be used in verifying (assuming that we would less likely get the same P and Q twice).
             var diffKey = new RsaKey(Exp, keySize);
 
-            var privKey = keyPair._privKey;
-
-            // The different public key to be used in verifying.
-            var secPubKey = new RsaPubKey(diffKey);
-
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
-            return PermutationTest.Verifying(secPubKey, signature, alpha, keySize, ps);
+            var signature = keyPair.CreatePermutationTestProof(setup);
+            return diffKey.PublicKey.VerifyPermutationTestProof(signature, setup);
         }
 
         [TestMethod()]
@@ -377,11 +372,8 @@ namespace TumbleBitSetup.Tests
             // A different key pair to be used in verifying.
             var diffKey = new RsaKey(privKey.P, privKey.Q, new BigInteger("65537"));
 
-            // The different public key to be used in verifying.
-            var secPubKey = new RsaPubKey(diffKey);
-
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
-            return PermutationTest.Verifying(secPubKey, signature, alpha, keySize, ps);
+            var signature = keyPair.CreatePermutationTestProof(setup);
+            return diffKey.PublicKey.VerifyPermutationTestProof(signature, setup);
         }
 
         [TestMethod()]
@@ -399,12 +391,12 @@ namespace TumbleBitSetup.Tests
             // A case where "shortKeySize"-bits N is used for proving and "longKeySize"-bits is needed for verifying.
             var keyPair = new RsaKey(Exp, shortKeySize);
 
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
-
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
+            var signature = keyPair.CreatePermutationTestProof(setup);
             // passing "longKeySize" as the keySize.
-            return PermutationTest.Verifying(pubKey, signature, alpha, longKeySize, ps);
+
+            var setup2 = setup.Clone();
+            setup2.KeySize = longKeySize;
+            return keyPair.PublicKey.VerifyPermutationTestProof(signature, setup2);
         }
 
         [TestMethod()]
@@ -429,9 +421,9 @@ namespace TumbleBitSetup.Tests
             var pubKey = new RsaPubKey(privKey.Modulus, Exp);
 
             // Using the "normal" key to make signatures
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, Exp, alpha, ps);
+            var signature = keyPair.CreatePermutationTestProof(setup);
             // Passing the modified publicKey to verify.
-            return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
+            return pubKey.VerifyPermutationTestProof(signature, setup);
         }
 
         [TestMethod()]
@@ -440,7 +432,7 @@ namespace TumbleBitSetup.Tests
             for (int i = 0; i < iterInValid; i++)
                 Assert.IsFalse(_Test3A(Exp, 2048));
         }
-        public bool _Test3A(BigInteger Exp , int keySize)
+        public bool _Test3A(BigInteger Exp, int keySize)
         {
             /* Test 3A
              * Let p and q both be even numbers such that N is “sufficiently long”
@@ -463,12 +455,9 @@ namespace TumbleBitSetup.Tests
             // This doesn't work for now because of the check in ModInverse for Q_inv
             var keyPair = new RsaKey(p, q, Exp);
 
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
+            var signature = keyPair.CreatePermutationTestProof(setup);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
-
-             return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
+            return keyPair.PublicKey.VerifyPermutationTestProof(signature, setup);
         }
 
         [TestMethod()]
@@ -496,12 +485,9 @@ namespace TumbleBitSetup.Tests
             // This doesn't work for now because of the check in ModInverse for Q_inv
             var keyPair = new RsaKey(p, q, Exp);
 
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
+            var signature = keyPair.CreatePermutationTestProof(setup);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
-
-            return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
+            return keyPair.PublicKey.VerifyPermutationTestProof(signature, setup);
         }
 
         [TestMethod()]
@@ -529,12 +515,9 @@ namespace TumbleBitSetup.Tests
 
             var keyPair = new RsaKey(p, q, Exp);
 
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
+            var signature = keyPair.CreatePermutationTestProof(setup);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
-
-            return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
+            return keyPair.PublicKey.VerifyPermutationTestProof(signature, setup);
         }
 
         [TestMethod()]
@@ -566,12 +549,9 @@ namespace TumbleBitSetup.Tests
 
             var keyPair = new RsaKey(p, q, Exp);
 
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
+            var signature = keyPair.CreatePermutationTestProof(setup);
 
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
-
-            return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
+            return keyPair.PublicKey.VerifyPermutationTestProof(signature, setup);
         }
 
         [TestMethod()]
@@ -599,13 +579,9 @@ namespace TumbleBitSetup.Tests
             q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
 
             var keyPair = new RsaKey(p, q, Exp);
+            var signature = keyPair.CreatePermutationTestProof(setup);
 
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
-
-            byte[][] signature = PermutationTest.Proving(privKey.P, privKey.Q, privKey.PublicExponent, alpha, ps);
-
-            return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
+            return keyPair.PublicKey.VerifyPermutationTestProof(signature, setup);
         }
     }
 
@@ -618,7 +594,8 @@ namespace TumbleBitSetup.Tests
 
         BigInteger Exp = BigInteger.Three;
         int keySize = 2048;
-        public byte[] ps = Strings.ToByteArray("public string");
+        PoupardSternSetup setup = new PoupardSternSetup(Strings.ToByteArray("public string"), 2048);
+        byte[] ps = Strings.ToByteArray("public string");
 
         // unit tests for sub functions
 
@@ -647,7 +624,7 @@ namespace TumbleBitSetup.Tests
         public void GetWTest()
         {
             var k = 128;
-            var BigK = k+1;
+            var BigK = k + 1;
             var keyPair = new RsaKey(Exp, keySize);
             var pubKey = new RsaPubKey(keyPair);
 
@@ -676,7 +653,7 @@ namespace TumbleBitSetup.Tests
             // Check that the bitLength of w equals to k.
             Assert.IsTrue(w.BitLength <= k);
         }
-        
+
         // unit tests for main functions
 
         [TestMethod()]
@@ -687,7 +664,7 @@ namespace TumbleBitSetup.Tests
             var keySizeList = new int[3] { 1024, 2048, 4096 };
 
             foreach (int k in kList)
-                foreach(int keySize in keySizeList)
+                foreach (int keySize in keySizeList)
                     for (int i = 0; i < iterValid; i++)
                         // (Exp, keySize, k)
                         Assert.IsTrue(_ProvingAndVerifyingTest(Exp, keySize, k));
@@ -698,20 +675,15 @@ namespace TumbleBitSetup.Tests
         }
         public bool _ProvingAndVerifyingTest(BigInteger Exp, int keySize, int k)
         {
+            var setup2 = setup.Clone();
+            setup2.SecurityParameter = k;
+            setup2.KeySize = keySize;
             // Sanity check
             var keyPair = new RsaKey(Exp, keySize);
-
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
-            
             // Proving
-            var outputTuple = PoupardStern.Proving(privKey.P, privKey.Q, privKey.PublicExponent, keySize, ps, k);
-
-            var xValues = outputTuple.Item1;
-            var y = outputTuple.Item2;
-            
+            var outputTuple = keyPair.CreatePoupardSternProof(setup2);
             // Verifying
-            return PoupardStern.Verifying(pubKey, xValues, y, keySize, ps, k);
+            return keyPair.PublicKey.VerifyPoupardSternProof(outputTuple, setup2);
         }
 
         [TestMethod()]
@@ -727,20 +699,18 @@ namespace TumbleBitSetup.Tests
         }
         public bool _ShortN(BigInteger Exp, int shortKeySize, int longKeySize, int k)
         {
+            var setup2 = setup.Clone();
+            setup2.SecurityParameter = k;
+            setup2.KeySize = shortKeySize;
             // A case where "shortKeySize"-bits N is used for proving and "longKeySize"-bits is needed for verifying.
             var keyPair = new RsaKey(Exp, shortKeySize);
 
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
-
             // Proving
-            var outputTuple = PoupardStern.Proving(privKey.P, privKey.Q, privKey.PublicExponent, shortKeySize, ps, k);
+            var outputTuple = keyPair.CreatePoupardSternProof(setup2);
 
-            var xValues = outputTuple.Item1;
-            var y = outputTuple.Item2;
-
+            setup2.KeySize = longKeySize;
             // Verifying
-            return PoupardStern.Verifying(pubKey, xValues, y, longKeySize, ps, k);
+            return keyPair.PublicKey.VerifyPoupardSternProof(outputTuple, setup2);
         }
     }
 

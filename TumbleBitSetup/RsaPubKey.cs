@@ -31,7 +31,17 @@ namespace TumbleBitSetup
         {
             _pubKey = new RsaKeyParameters(false, N, e);
         }
-        
+
+        public bool VerifyPoupardSternProof(PoupardSternProof proof, PoupardSternSetup setup)
+        {
+            return PoupardStern.Verifying(this, proof.XValues, proof.YValue, setup.KeySize, setup.PublicString, setup.SecurityParameter);
+        }
+
+        public bool VerifyPermutationTestProof(PermutationTestProof proof, PermutationTestSetup setup)
+        {
+            return PermutationTest.Verifying(this, proof.Signatures, setup.Alpha, setup.KeySize, setup.PublicString, setup.SecurityParameter);
+        }
+
         /// <summary>
         /// Preforms RSA encryption using public key.
         /// </summary>

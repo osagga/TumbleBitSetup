@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace TumbleBitSetup
 {
     // TODO: edit the page number references in the comments or remove them.
-    public class PermutationTest
+    internal class PermutationTest
     {
         /// <summary>
         /// Proving Algorithm specified in page 7 (2.8.1) of the setup

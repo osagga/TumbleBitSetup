@@ -15,7 +15,7 @@ namespace TumbleBitSetup
     {
         internal readonly RsaPrivateCrtKeyParameters _privKey;
         internal readonly RsaKeyParameters _pubKey;
-        
+
         /// <summary>
         /// Generates a new RSA key pair (public and private)
         /// </summary>
@@ -28,8 +28,8 @@ namespace TumbleBitSetup
             var gen = new RsaKeyPairGenerator();
             gen.Init(new RsaKeyGenerationParameters(Exp, random, keySize, 2)); // See A.15.2 IEEE P1363 v2 D1 for certainty parameter
             var pair = gen.GenerateKeyPair();
-            _privKey = (RsaPrivateCrtKeyParameters) pair.Private;
-            _pubKey = (RsaKeyParameters) pair.Public;
+            _privKey = (RsaPrivateCrtKeyParameters)pair.Private;
+            _pubKey = (RsaKeyParameters)pair.Public;
         }
 
         /// <summary>
@@ -51,7 +51,18 @@ namespace TumbleBitSetup
             _privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
             _pubKey = (RsaKeyParameters)keyPair.Public;
         }
-        
+
+        RsaPubKey _PublicKey;
+        public RsaPubKey PublicKey
+        {
+            get
+            {
+                if (_PublicKey == null)
+                    _PublicKey = new RsaPubKey(_pubKey);
+                return _PublicKey;
+            }
+        }
+
         /// <summary>
         /// Preforms RSA decryption (or signing) using private key.
         /// </summary>
@@ -66,6 +77,18 @@ namespace TumbleBitSetup
             engine.Init(false, _privKey);
 
             return engine.ProcessBlock(encrypted, 0, encrypted.Length);
+        }
+
+        public PoupardSternProof CreatePoupardSternProof(PoupardSternSetup setup)
+        {
+            var proof = PoupardStern.Proving(_privKey.P, _privKey.Q, _privKey.PublicExponent, _privKey.Modulus.BitLength, setup.PublicString, setup.SecurityParameter);
+            return new PoupardSternProof(proof);
+        }
+
+        public PermutationTestProof CreatePermutationTestProof(PermutationTestSetup setup)
+        {
+            var proof = PermutationTest.Proving(_privKey.P, _privKey.Q, _privKey.PublicExponent, setup.Alpha, setup.PublicString, setup.SecurityParameter);
+            return new PermutationTestProof(proof);
         }
 
         /// <summary>

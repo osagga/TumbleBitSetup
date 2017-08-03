@@ -10,7 +10,7 @@ namespace TumbleBitSetup.Tests
     public class Benchmark
     {
         public byte[] ps = Strings.ToByteArray("public string");
-        public double iterations = 50.0;
+        public double iterations = 100.0;
         public BigInteger Exp = BigInteger.ValueOf(65537);
         public Stopwatch sw = new Stopwatch();
 
@@ -73,12 +73,9 @@ namespace TumbleBitSetup.Tests
         [TestMethod()]
         public void BenchmarkPermutationTest()
         {
-            //var alphaList = new int[6] { 41, 997, 4999, 7649, 20663, 33469 };
-            //var keySizeList = new int[3] { 512, 1024, 2048};
-            //var alphaList = new int[12] { 43, 991, 1723, 1777, 3391, 3581, 7649, 8663, 20663, 30137, 71471, 352831 }; //Spredsheet values
-            //var keySizeList = new int[1] { 2048 }; //Spreadsheet values
-            var alphaList = new int[1] { 30137 }; //microBenchmark value
-            var keySizeList = new int[1] { 2048 }; //Spreadsheet values
+            var alphaList = new int[16] { 41, 43, 991, 997, 1723, 1777, 3391, 3581, 4999, 7649, 8663, 20663, 30137, 33469, 71471, 352831 }; // Spreadsheet values
+            var keySizeList = new int[3] { 512, 1024, 2048 };
+
             Console.WriteLine("PermutationTest Protocol, alpha, keyLength, ProvingTime, VerifyingTime");
 
             foreach (int alpha in alphaList)

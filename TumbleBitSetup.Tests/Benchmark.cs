@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TumbleBitSetup.Tests
 {
-    [TestClass()]
+    //[TestClass()]
     public class Benchmark
     {
         public byte[] ps = Strings.ToByteArray("public string");

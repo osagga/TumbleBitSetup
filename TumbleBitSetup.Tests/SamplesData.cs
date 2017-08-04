@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TumbleBitSetup.Tests
 {
-    [TestClass()]
+    //[TestClass()]
     public class SamplesData
     {
         // This class generates datasets for testing

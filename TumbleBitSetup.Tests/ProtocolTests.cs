@@ -407,7 +407,7 @@ namespace TumbleBitSetup.Tests
             return PermutationTest.Verifying(pubKey, signature, alpha, longKeySize, ps);
         }
 
-        [TestMethod()]
+        //[TestMethod()]
         public void EvenE()
         {
             for (int i = 0; i < iterInValid; i++)
@@ -434,7 +434,7 @@ namespace TumbleBitSetup.Tests
             return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
         }
 
-        [TestMethod()]
+        //[TestMethod()]
         public void Test3A()
         {
             for (int i = 0; i < iterInValid; i++)
@@ -471,7 +471,7 @@ namespace TumbleBitSetup.Tests
              return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
         }
 
-        [TestMethod()]
+        //[TestMethod()]
         public void Test3B()
         {
             for (int i = 0; i < iterInValid; i++)
@@ -504,7 +504,7 @@ namespace TumbleBitSetup.Tests
             return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
         }
 
-        [TestMethod()]
+        //[TestMethod()]
         public void Test3C()
         {
             for (int i = 0; i < iterInValid; i++)
@@ -537,7 +537,7 @@ namespace TumbleBitSetup.Tests
             return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
         }
 
-        [TestMethod()]
+        //[TestMethod()]
         public void Test3D()
         {
             for (int i = 0; i < iterInValid; i++)
@@ -574,7 +574,7 @@ namespace TumbleBitSetup.Tests
             return PermutationTest.Verifying(pubKey, signature, alpha, keySize, ps);
         }
 
-        [TestMethod()]
+        //[TestMethod()]
         public void Test3E()
         {
             for (int i = 0; i < iterValid; i++)

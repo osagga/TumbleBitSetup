@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TumbleBitSetup
 {
@@ -10,7 +6,7 @@ namespace TumbleBitSetup
     {
         public PermutationTestSetup()
         {
-
+            
         }
 
         public PermutationTestSetup(byte[] publicString, int alpha, int keySize, int securityParameter = 128)

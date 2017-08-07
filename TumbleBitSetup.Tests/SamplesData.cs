@@ -17,7 +17,7 @@ namespace TumbleBitSetup.Tests
         int keySize = 128;
         int k = 128;
         int BigK = 129;
-        int sampels = 10000;
+        int samples = 10000;
 
         [TestMethod()]
         public void GetW_Data()
@@ -62,9 +62,9 @@ namespace TumbleBitSetup.Tests
         public void GetR_Data()
         {
 
-            var list = new BigInteger[sampels];
+            var list = new BigInteger[samples];
 
-            for (int i = 0; i < sampels; i++)
+            for (int i = 0; i < samples; i++)
                 PoupardStern.GetR(keySize, out list[i]);
 
             Console.WriteLine(String.Join(",", list.ToList()));
@@ -73,15 +73,15 @@ namespace TumbleBitSetup.Tests
         [TestMethod()]
         public void SampleFromZnStar_Data()
         {
-            BigK = sampels;
+            BigK = samples;
             var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
             var pubKey = (RsaKeyParameters)keyPair.Public;
 
             var Modulus = pubKey.Modulus;
 
-            var list = new BigInteger[sampels];
+            var list = new BigInteger[samples];
 
-            for (int i = 0; i < sampels; i++)
+            for (int i = 0; i < samples; i++)
                 list[i] = PoupardStern.SampleFromZnStar(pubKey, ps, i, BigK, keySize);
 
             Console.WriteLine(String.Join(",", list.ToList()));

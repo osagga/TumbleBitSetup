@@ -97,20 +97,5 @@ namespace TumbleBitSetup.Tests
             // From here https://stackoverflow.com/questions/332973/check-whether-an-array-is-a-subset-of-another
             return !t1.Except(t2).Any();
         }
-
-        /// <summary>
-        /// Converts a hex string to a ByteArray
-        /// </summary>
-        /// <param name="hex">The input hex string.</param>
-        /// <returns></returns>
-        public static byte[] StringToByteArray(string hex)
-        {
-            // https://stackoverflow.com/questions/321370/how-can-i-convert-a-hex-string-to-a-byte-array
-            return Enumerable.Range(0, hex.Length)
-                             .Where(x => x % 2 == 0)
-                             .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
-                             .ToArray();
-        }
-
     }
 }

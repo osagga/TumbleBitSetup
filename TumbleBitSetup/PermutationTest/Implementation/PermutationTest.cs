@@ -8,20 +8,31 @@ using System.Collections.Generic;
 namespace TumbleBitSetup
 {
     // TODO: edit the page number references in the comments or remove them.
-    public class PermutationTest
+    public static class PermutationTest
     {
         /// <summary>
         /// Proving Algorithm specified in page 7 (2.8.1) of the setup
         /// </summary>
-        /// <param name="p">P in the secret key</param>
-        /// <param name="q">Q in the secret key</param>
-        /// <param name="e">Public Exponent in the public key</param>
-        /// <param name="alpha">Prime number specified in the setup</param>
-        /// <param name="psBytes">The public string from the setup</param>
-        /// <param name="k">Security parameter as specified in the setup.</param>
+        /// <param name="privKey">The secret key</param>
+        /// <param name="setup">The setup parameters</param>
         /// <returns>List of signatures</returns>
-        public static byte[][] Proving(BigInteger p, BigInteger q, BigInteger e, int alpha, byte[] psBytes, int k = 128)
+        public static PermutationTestProof ProvePermutationTest(this RsaPrivateCrtKeyParameters privKey, PermutationTestSetup setup)
         {
+            if (privKey == null)
+                throw new ArgumentNullException(nameof(privKey));
+            if (setup == null)
+                throw new ArgumentNullException(nameof(setup));
+
+            BigInteger p = privKey.P;
+            BigInteger q = privKey.Q;
+            BigInteger e = privKey.PublicExponent;
+
+            int alpha = setup.Alpha;
+            byte[] psBytes = setup.PublicString;
+            int k = setup.SecurityParameter;
+
+
+
             byte[][] sigs;
 
             // Generate m1 and m2
@@ -32,11 +43,11 @@ namespace TumbleBitSetup
             var eN = N.Multiply(e);
 
             // Generate a pair (pub, priv) of keys for e and eN
-            var keyPair = new RsaKey(p, q, e);
-            var keyPrimePair = new RsaKey(p, q, eN);
+            var keyPair = Utils.GeneratePrivate(p, q, e);
+            var keyPrimePair = Utils.GeneratePrivate(p, q, eN);
 
             // Extract public key (N, e) from main key.
-            var pubKey = new RsaPubKey(keyPair);
+            var pubKey = (RsaKeyParameters)keyPair.Public;
 
             // Generate list of rho values
             GetRhos(m2, psBytes, pubKey, N.BitLength, out byte[][] rhoValues);
@@ -46,28 +57,36 @@ namespace TumbleBitSetup
             for (int i = 0; i < m2; i++)
             {
                 if (i <= m1)
-                    sigs[i] = keyPrimePair.Decrypt(rhoValues[i]);
+                    sigs[i] = ((RsaPrivateCrtKeyParameters)keyPrimePair.Private).Decrypt(rhoValues[i]);
                 else
-                    sigs[i] = keyPair.Decrypt(rhoValues[i]);
+                    sigs[i] = ((RsaPrivateCrtKeyParameters)keyPair.Private).Decrypt(rhoValues[i]);
             }
-            return sigs;
+            return new PermutationTestProof(sigs);
         }
 
         /// <summary>
         /// Verifying Algorithm specified in page 8 (2.8.2) of the setup
         /// </summary>
-        /// <param name="pubKey">Public Key used to verify the signatures</param>
-        /// <param name="sigs">List of signatures to verify</param>
-        /// <param name="alpha">Prime number specified in the setup</param>
-        /// <param name="keyLength">The size of the RSA key in bits</param>
-        /// <param name="psBytes">The public string from the setup</param>
-        /// <param name="k">Security parameter as specified in the setup.</param>
+        /// <param name="pubKey">Public Key used to verify the proof</param>
+        /// <param name="proof">Proof</param>
+        /// <param name="setup">Setup parameters</param>
         /// <returns> true if the signatures verify, false otherwise</returns>
-        public static bool Verifying(RsaPubKey pubKey, byte[][] sigs, int alpha, int keyLength, byte[] psBytes, int k = 128)
+        public static bool VerifyPermutationTest(this RsaKeyParameters pubKey, PermutationTestProof proof, PermutationTestSetup setup)
         {
+            if (setup == null)
+                throw new ArgumentNullException(nameof(setup));
+            if (proof == null)
+                throw new ArgumentNullException(nameof(proof));
+
+            byte[][] sigs = proof.Signatures;
+            int alpha = setup.Alpha;
+            int keyLength = setup.KeySize;
+            byte[] psBytes = setup.PublicString;
+            int k = setup.SecurityParameter;
+
             BigInteger Two = BigInteger.Two;
-            var Modulus = pubKey._pubKey.Modulus;
-            var Exponent = pubKey._pubKey.Exponent;
+            var Modulus = pubKey.Modulus;
+            var Exponent = pubKey.Exponent;
             BigInteger lowerLimit = Two.Pow(keyLength - 1);
             BigInteger upperLimit = Two.Pow(keyLength);
 
@@ -92,7 +111,7 @@ namespace TumbleBitSetup
 
             // Generate a "weird" public key
             var eN = Modulus.Multiply(Exponent);
-            var pubKeyPrime = new RsaPubKey(new RsaKeyParameters(false, Modulus, eN));
+            var pubKeyPrime = new RsaKeyParameters(false, Modulus, eN);
 
             // Generate list of rho values
             GetRhos(m2, psBytes, pubKey, keyLength, out byte[][] rhoValues);
@@ -157,11 +176,11 @@ namespace TumbleBitSetup
         /// <param name="psBytes">public string specified in the setup</param>
         /// <param name="key">Public key used</param>
         /// <param name="keyLength">The size of the RSA key in bits</param>
-        internal static void GetRhos(int m2, byte[] psBytes, RsaPubKey key, int keyLength, out byte[][] rhoValues)
+        internal static void GetRhos(int m2, byte[] psBytes, RsaKeyParameters key, int keyLength, out byte[][] rhoValues)
         {
             var m2Len = Utils.GetOctetLen(m2);
             rhoValues = new byte[m2][];
-            BigInteger Modulus = key._pubKey.Modulus;
+            BigInteger Modulus = key.Modulus;
 
             // ASN.1 encoding of the PublicKey
             var keyBytes = key.ToBytes();

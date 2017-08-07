@@ -1,14 +1,30 @@
-﻿using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Math;
+﻿using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Parameters;
 using System;
 using System.Linq;
 using System.Collections.Generic;
-
 
 namespace TumbleBitSetup.Tests
 {
     class TestUtils
     {
+        /// <summary>
+        /// Generates a new RSA key pair (public and private)
+        /// </summary>
+        /// <param name="Exp">Public exponent to use for generation</param>
+        /// <param name="keySize">The size of the key to generate</param>
+        /// <returns>RSA key pair (public and private)</returns>
+        internal static AsymmetricCipherKeyPair GeneratePrivate(BigInteger exp, int keySize)
+        {
+            SecureRandom random = new SecureRandom();
+            var gen = new RsaKeyPairGenerator();
+            gen.Init(new RsaKeyGenerationParameters(exp, random, keySize, 100));
+            return gen.GenerateKeyPair();
+        }
+
         /// <summary>
         /// Generates a random BigInteger with the given length
         /// </summary>
@@ -76,7 +92,7 @@ namespace TumbleBitSetup.Tests
         /// <param name="t1"></param>
         /// <param name="t2"></param>
         /// <returns>true if t2 is a subset of t1, false otherwise</returns>
-        public static bool isSubset(List<int> t1, List<int> t2)
+        public static bool IsSubset(List<int> t1, List<int> t2)
         {
             // From here https://stackoverflow.com/questions/332973/check-whether-an-array-is-a-subset-of-another
             return !t1.Except(t2).Any();

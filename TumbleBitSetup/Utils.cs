@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using Org.BouncyCastle.Crypto;
 
 namespace TumbleBitSetup
 {
@@ -55,7 +56,44 @@ namespace TumbleBitSetup
         {
             return (int)Math.Ceiling((1.0 / 8.0) * Math.Log(x+1, 2));
         }
-        
+
+        /// <summary>
+        /// Generates a private key given P, Q and e
+        /// </summary>
+        /// <param name="p">P</param>
+        /// <param name="q">Q</param>
+        /// <param name="e">Public Exponent</param>
+        /// <returns>RSA key pair</returns>
+        internal static AsymmetricCipherKeyPair GeneratePrivate(BigInteger p, BigInteger q, BigInteger e)
+        {
+            BigInteger n = p.Multiply(q);
+
+            BigInteger One = BigInteger.One;
+            BigInteger pSub1 = p.Subtract(One);
+            BigInteger qSub1 = q.Subtract(One);
+            BigInteger gcd = pSub1.Gcd(qSub1);
+            BigInteger lcm = pSub1.Divide(gcd).Multiply(qSub1);
+
+            //
+            // calculate the private exponent
+            //
+            BigInteger d = e.ModInverse(lcm);
+
+            if(d.BitLength <= q.BitLength)
+                throw new ArgumentException("Invalid RSA q value");
+
+            //
+            // calculate the CRT factors
+            //
+            BigInteger dP = d.Remainder(pSub1);
+            BigInteger dQ = d.Remainder(qSub1);
+            BigInteger qInv = q.ModInverse(p);
+
+            return new AsymmetricCipherKeyPair(
+                new RsaKeyParameters(false, n, e),
+                new RsaPrivateCrtKeyParameters(n, e, d, p, q, dP, dQ, qInv));
+        }
+
         /// <summary>
         /// Generates a list of primes up to and including the input bound
         /// </summary>

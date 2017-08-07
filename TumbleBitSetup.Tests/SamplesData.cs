@@ -22,7 +22,7 @@ namespace TumbleBitSetup.Tests
         [TestMethod()]
         public void GetW_Data()
         {
-            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
 
             var pubKey = (RsaKeyParameters)keyPair.Public;
             BigK = 5000;
@@ -74,7 +74,7 @@ namespace TumbleBitSetup.Tests
         public void SampleFromZnStar_Data()
         {
             BigK = sampels;
-            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
             var pubKey = (RsaKeyParameters)keyPair.Public;
 
             var Modulus = pubKey.Modulus;
@@ -92,7 +92,7 @@ namespace TumbleBitSetup.Tests
         {
             // GetRhos is really producing outputs rho that are<N and have GCD(N, rho) = 1
             int m2 = 10000;
-            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
 
             var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
             var pubKey = (RsaKeyParameters)keyPair.Public;

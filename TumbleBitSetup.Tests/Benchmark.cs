@@ -97,7 +97,7 @@ namespace TumbleBitSetup.Tests
         {
             var setup = new PermutationTestSetup(ps, alpha, k);
             // PermutationTest Protocol
-            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
 
             sw.Restart(); //Proving start
             var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
@@ -115,7 +115,7 @@ namespace TumbleBitSetup.Tests
         {
             var setup = new PoupardSternSetup(ps, k);
             // PoupardStern Protocol
-            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
 
             sw.Restart(); //Proving start
             var outputTuple = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePoupardStern(setup);
@@ -132,7 +132,7 @@ namespace TumbleBitSetup.Tests
         }
         public void _CheckAlphaN(BigInteger Exp, int keySize, int alpha, out double alphaTime)
         {
-            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
 
             var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
             var pubKey = (RsaKeyParameters)keyPair.Public;

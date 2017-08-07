@@ -6,11 +6,7 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Security;
 
 namespace TumbleBitSetup
 {
@@ -59,14 +55,6 @@ namespace TumbleBitSetup
         internal static int GetOctetLen(int x)
         {
             return (int)Math.Ceiling((1.0 / 8.0) * Math.Log(x+1, 2));
-        }
-
-        internal static AsymmetricCipherKeyPair GeneratePrivate(BigInteger exp, int keySize)
-        {
-            SecureRandom random = new SecureRandom();
-            var gen = new RsaKeyPairGenerator();
-            gen.Init(new RsaKeyGenerationParameters(exp, random, keySize, 2)); // See A.15.2 IEEE P1363 v2 D1 for certainty parameter
-            return gen.GenerateKeyPair();
         }
 
         /// <summary>

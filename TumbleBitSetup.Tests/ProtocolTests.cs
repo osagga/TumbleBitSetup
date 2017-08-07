@@ -71,7 +71,7 @@ namespace TumbleBitSetup.Tests
             {
                 var smallPrimeList = Utils.Primes(i).ToList();
                 var largePrimeList = Utils.Primes(i + 1).ToList();
-                Assert.IsTrue(TestUtils.isSubset(smallPrimeList, largePrimeList));
+                Assert.IsTrue(TestUtils.IsSubset(smallPrimeList, largePrimeList));
             }
         }
 
@@ -199,7 +199,7 @@ namespace TumbleBitSetup.Tests
         {
             // GetRhos is really producing outputs rho that are<N and have GCD(N, rho) = 1
             int m2 = 11;
-            var keyPair = Utils.GeneratePrivate(Exp, setup.KeySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, setup.KeySize);
 
             var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
             var pubKey = (RsaKeyParameters)keyPair.Public;
@@ -248,7 +248,7 @@ namespace TumbleBitSetup.Tests
         {
             // CheckAlphaN outputs fail if N is even.
             // Sanity check
-            var keyPair = Utils.GeneratePrivate(Exp, setup.KeySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, setup.KeySize);
 
             var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
             var pubKey = (RsaKeyParameters)keyPair.Public;
@@ -326,7 +326,7 @@ namespace TumbleBitSetup.Tests
         public bool _ProvingAndVerifyingTest(BigInteger Exp, int keySize, int alpha, int k)
         {
             // Sanity check
-            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
             var setup2 = setup.Clone();
             setup2.KeySize = keySize;
             setup2.SecurityParameter = k;
@@ -348,9 +348,9 @@ namespace TumbleBitSetup.Tests
             // Modulus that is different than the one the verifier uses
 
             // The key pair used in Proving
-            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
             // A different key pair to be used in verifying (assuming that we would less likely get the same P and Q twice).
-            var diffKey = Utils.GeneratePrivate(Exp, keySize);
+            var diffKey = TestUtils.GeneratePrivate(Exp, keySize);
 
             var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
             return ((RsaKeyParameters)diffKey.Public).VerifyPermutationTest(signature, setup);
@@ -367,7 +367,7 @@ namespace TumbleBitSetup.Tests
             // Different "e" than the verifier uses.
 
             // The key pair used in Proving
-            var keyPair = Utils.GeneratePrivate(BigInteger.Three, keySize);
+            var keyPair = TestUtils.GeneratePrivate(BigInteger.Three, keySize);
             var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
 
             // A different key pair to be used in verifying.
@@ -390,7 +390,7 @@ namespace TumbleBitSetup.Tests
         public bool _ShortN(BigInteger Exp, int shortKeySize, int longKeySize)
         {
             // A case where "shortKeySize"-bits N is used for proving and "longKeySize"-bits is needed for verifying.
-            var keyPair = Utils.GeneratePrivate(Exp, shortKeySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, shortKeySize);
 
             var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
             // passing "longKeySize" as the keySize.
@@ -415,7 +415,7 @@ namespace TumbleBitSetup.Tests
              * 
             */
             // Generating a "normal" RSA key
-            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
             var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
             Exp = BigInteger.ValueOf(6);
             // Modifying the publicKey to be (N, 6) instead of (N, Exp).
@@ -607,7 +607,7 @@ namespace TumbleBitSetup.Tests
             int BigK = 129; // If k = 128
             keySize = 2048;
 
-            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
 
             var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
             var pubKey = (RsaKeyParameters)keyPair.Public;
@@ -627,7 +627,7 @@ namespace TumbleBitSetup.Tests
         {
             var k = 128;
             var BigK = k + 1;
-            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
 
             var pubKey = (RsaKeyParameters)keyPair.Public;
 
@@ -682,7 +682,7 @@ namespace TumbleBitSetup.Tests
             setup2.SecurityParameter = k;
             setup2.KeySize = keySize;
             // Sanity check
-            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
             // Proving
             var outputTuple = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePoupardStern(setup2);
             // Verifying
@@ -706,7 +706,7 @@ namespace TumbleBitSetup.Tests
             setup2.SecurityParameter = k;
             setup2.KeySize = shortKeySize;
             // A case where "shortKeySize"-bits N is used for proving and "longKeySize"-bits is needed for verifying.
-            var keyPair = Utils.GeneratePrivate(Exp, shortKeySize);
+            var keyPair = TestUtils.GeneratePrivate(Exp, shortKeySize);
 
             // Proving
             var outputTuple = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePoupardStern(setup2);

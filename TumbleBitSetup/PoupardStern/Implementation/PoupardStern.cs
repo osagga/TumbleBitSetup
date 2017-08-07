@@ -1,4 +1,7 @@
-﻿using Org.BouncyCastle.Math;
+﻿using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using System;
@@ -6,19 +9,27 @@ using System;
 
 namespace TumbleBitSetup
 {
-    internal class PoupardStern
+    public static class PoupardStern
     {
         /// <summary>
         /// Proving Algorithm specified in (3.2.1) of the setup
         /// </summary> 
-        /// <param name="p">P in the secret key</param>
-        /// <param name="q">Q in the secret key</param>
-        /// <param name="e">Public Exponent in the public key</param>
-        /// <param name="ps">The public string from the setup</param>
-        /// <param name="k">Security parameter as specified in the setup.</param>
-        /// <returns>List of x values and y</returns>
-        public static Tuple<BigInteger[], BigInteger> Proving(BigInteger p, BigInteger q, BigInteger e, int keyLength, byte[] psBytes, int k = 128)
+        /// <param name="privKey">The secret key</param>
+        /// <param name="setup">The setup parameters</param>
+        /// <returns>The PoupardStern proof</returns>
+        public static PoupardSternProof ProvePoupardStern(this RsaPrivateCrtKeyParameters privKey, PoupardSternSetup setup)
         {
+            if (privKey == null)
+                throw new ArgumentNullException(nameof(privKey));
+            if (setup == null)
+                throw new ArgumentNullException(nameof(setup));
+            var p = privKey.P;
+            var q = privKey.Q;
+            var e = privKey.PublicExponent;
+            int keyLength = setup.KeySize;
+            int k = setup.SecurityParameter;
+            var psBytes = setup.PublicString;
+
             BigInteger y;
             BigInteger Two = BigInteger.Two;
             // 2^{|N| - 1}
@@ -30,11 +41,11 @@ namespace TumbleBitSetup
             k = Utils.GetByteLength(k) * 8;
 
             // Generate a keyPair from p, q and e
-            var keyPair = new RsaKey(p, q, e);
-            var pubKey = new RsaPubKey(keyPair._pubKey);
-            var secKey = keyPair._privKey;
+            var keyPair = Utils.GeneratePrivate(p, q, e);
+            var pubKey = (RsaKeyParameters)keyPair.Public;
+            var secKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
 
-            BigInteger Modulus = pubKey._pubKey.Modulus;
+            BigInteger Modulus = pubKey.Modulus;
 
             // Check if N < 2^{|N|-1}
             if (Modulus.CompareTo(lowerLimit) < 0)
@@ -67,7 +78,7 @@ namespace TumbleBitSetup
             // Initialize and generate list of z values
             BigInteger[] zValues = new BigInteger[BigK];
             for (int i = 0; i < BigK; i++)
-                zValues[i] =  SampleFromZnStar(pubKey, psBytes, i, BigK, keyLength);
+                zValues[i] = SampleFromZnStar(pubKey, psBytes, i, BigK, keyLength);
 
             for (;;)
             {
@@ -90,41 +101,49 @@ namespace TumbleBitSetup
                 // if y >= 2^{ |N| - 1 }
                 if (y.CompareTo(lowerLimit) >= 0)
                     continue;
-                
+
                 // if y < 0
                 if (y.CompareTo(BigInteger.Zero) < 0)
                     continue;
 
-                return new Tuple<BigInteger[], BigInteger>(xValues, y);
+                return new PoupardSternProof(new Tuple<BigInteger[], BigInteger>(xValues, y));
             }
-            
+
         }
 
         /// <summary>
         /// Verifying Algorithm specified in (3.3) of the setup
         /// </summary>
         /// <param name="pubKey">Public key used</param>
-        /// <param name="xValues">List of x_i values</param>
-        /// <param name="y">The value y as specified in the setup</param>
-        /// <param name="keyLength">The size of the RSA key in bits</param>
-        /// <param name="ps">public string specified in the setup</param>
-        /// <param name="k">Security parameter specified in the setup.</param>
-        /// <returns>true if the xValues verify, false otherwise</returns>
-        public static bool Verifying(RsaPubKey pubKey, BigInteger[] xValues, BigInteger y, int keyLength, byte[] psBytes, int k = 128)
+        /// <param name="proof">The proof.</param>
+        /// <param name="setup">Setup parameters.</param>
+        /// <returns>true if the proof verifies, false otherwise</returns>
+        public static bool VerifyPoupardStern(this RsaKeyParameters pubKey, PoupardSternProof proof, PoupardSternSetup setup)
         {
+            if (pubKey == null)
+                throw new ArgumentNullException(nameof(pubKey));
+            if (proof == null)
+                throw new ArgumentNullException(nameof(proof));
+            if (setup == null)
+                throw new ArgumentNullException(nameof(setup));
+
+            int keyLength = setup.KeySize;
+            int k = setup.SecurityParameter;
+            var y = proof.YValue;
+
             BigInteger rPrime;
             BigInteger lowerLimit = BigInteger.Two.Pow(keyLength - 1);
             BigInteger upperLimit = BigInteger.Two.Pow(keyLength);
-            
+
             // Rounding up k to the closest multiple of 8
             k = Utils.GetByteLength(k) * 8;
 
-            var Modulus = pubKey._pubKey.Modulus;
-            var Exponent = pubKey._pubKey.Exponent;
+            var Modulus = pubKey.Modulus;
+            var Exponent = pubKey.Exponent;
 
             // Checking that:
             // if y >= 2^{ |N| - 1 }
-            if (y.CompareTo(lowerLimit) >= 0)  
+            if (y.CompareTo(lowerLimit) >= 0)
                 return false;
             // if y < 0
             if (y.CompareTo(BigInteger.Zero) < 0)
@@ -140,11 +159,11 @@ namespace TumbleBitSetup
             GetK(k, out int BigK);
 
             // Check if the number of x_values is not equal to K
-            if (xValues.Length != BigK)
+            if (proof.XValues.Length != BigK)
                 return false;
 
             // Get w
-            GetW(pubKey, psBytes, xValues, k, keyLength, out BigInteger w);
+            GetW(pubKey, setup.PublicString, proof.XValues, k, keyLength, out BigInteger w);
 
             // Computing rPrime
             rPrime = y.Subtract(Modulus.Multiply(w));
@@ -152,11 +171,11 @@ namespace TumbleBitSetup
             // Verifying x values
             for (int i = 0; i < BigK; i++)
             {
-                var z_i = SampleFromZnStar(pubKey, psBytes, i, BigK, keyLength);
+                var z_i = SampleFromZnStar(pubKey, setup.PublicString, i, BigK, keyLength);
                 // Compute right side of the equality
                 var rs = z_i.ModPow(rPrime, Modulus);
                 // If the two sides are not equal
-                if (!(xValues[i].Equals(rs)))
+                if (!(proof.XValues[i].Equals(rs)))
                     return false;
             }
 
@@ -172,9 +191,9 @@ namespace TumbleBitSetup
         /// <param name="k">Security parameter specified in the setup.</param>
         /// <param name="keyLength">The size of the RSA key in bits</param>
         /// <returns></returns>
-        internal static BigInteger SampleFromZnStar(RsaPubKey pubKey, byte[] psBytes, int i, int BigK, int keyLength)
+        internal static BigInteger SampleFromZnStar(RsaKeyParameters pubKey, byte[] psBytes, int i, int BigK, int keyLength)
         {
-            BigInteger Modulus = pubKey._pubKey.Modulus;
+            BigInteger Modulus = pubKey.Modulus;
 
             // Octet Length of i
             int iLen = Utils.GetOctetLen(BigK);
@@ -184,7 +203,7 @@ namespace TumbleBitSetup
             var keyBytes = pubKey.ToBytes();
             // Combine the OctetString
             // TODO: Combine now takes multiple lists as input, so no need for the double call
-            var combined = Utils.Combine(keyBytes, Utils.Combine(psBytes,EI));
+            var combined = Utils.Combine(keyBytes, Utils.Combine(psBytes, EI));
             int j = 2;
             for (;;)
             {
@@ -216,7 +235,7 @@ namespace TumbleBitSetup
         /// <param name="xValues"> List of x_i values</param>
         /// <param name="k">Security parameter as specified in the setup.</param>
         /// <param name="keyLength">The size of the RSA key in bits</param>
-        internal static void GetW(RsaPubKey pubKey, byte[] psBytes, BigInteger[] xValues, int k, int keyLength, out BigInteger w)
+        internal static void GetW(RsaKeyParameters pubKey, byte[] psBytes, BigInteger[] xValues, int k, int keyLength, out BigInteger w)
         {
             if (xValues == null)
                 throw new ArgumentNullException(nameof(xValues));

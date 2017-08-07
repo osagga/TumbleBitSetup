@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using Org.BouncyCastle.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace TumbleBitSetup.Tests
 {
@@ -21,11 +22,12 @@ namespace TumbleBitSetup.Tests
         [TestMethod()]
         public void GetW_Data()
         {
-            var keyPair = new RsaKey(Exp, keySize);
-            var pubKey = new RsaPubKey(keyPair);
+            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+
+            var pubKey = (RsaKeyParameters)keyPair.Public;
             BigK = 5000;
 
-            var Modulus = pubKey._pubKey.Modulus;
+            var Modulus = pubKey.Modulus;
 
             BigInteger[] Datalist = new BigInteger[BigK];
 
@@ -72,10 +74,10 @@ namespace TumbleBitSetup.Tests
         public void SampleFromZnStar_Data()
         {
             BigK = sampels;
-            var keyPair = new RsaKey(Exp, keySize);
-            var pubKey = new RsaPubKey(keyPair);
+            var keyPair = Utils.GeneratePrivate(Exp, keySize);
+            var pubKey = (RsaKeyParameters)keyPair.Public;
 
-            var Modulus = pubKey._pubKey.Modulus;
+            var Modulus = pubKey.Modulus;
 
             var list = new BigInteger[sampels];
 
@@ -90,12 +92,12 @@ namespace TumbleBitSetup.Tests
         {
             // GetRhos is really producing outputs rho that are<N and have GCD(N, rho) = 1
             int m2 = 10000;
-            var keyPair = new RsaKey(Exp, keySize);
+            var keyPair = Utils.GeneratePrivate(Exp, keySize);
 
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
+            var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
+            var pubKey = (RsaKeyParameters)keyPair.Public;
 
-            var Modulus = pubKey._pubKey.Modulus;
+            var Modulus = pubKey.Modulus;
 
             // Generate list of rho values
             PermutationTest.GetRhos(m2, ps, pubKey, keySize, out byte[][] rhoValues);

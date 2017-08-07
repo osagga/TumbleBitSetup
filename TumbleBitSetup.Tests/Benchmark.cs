@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using Org.BouncyCastle.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace TumbleBitSetup.Tests
 {
@@ -96,16 +97,16 @@ namespace TumbleBitSetup.Tests
         {
             var setup = new PermutationTestSetup(ps, alpha, k);
             // PermutationTest Protocol
-            var keyPair = new RsaKey(Exp, keySize);
+            var keyPair = Utils.GeneratePrivate(Exp, keySize);
 
             sw.Restart(); //Proving start
-            var signature = keyPair.CreatePermutationTestProof(setup);
+            var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
             sw.Stop();  //Proving ends
 
             ProvingTime = sw.Elapsed.TotalSeconds;
 
             sw.Restart(); //Verifying start
-            keyPair.PublicKey.VerifyPermutationTestProof(signature, setup);
+            ((RsaKeyParameters)keyPair.Public).VerifyPermutationTest(signature, setup);
             sw.Stop();  //Verifying stops
 
             VerifyingTime = sw.Elapsed.TotalSeconds;
@@ -114,16 +115,16 @@ namespace TumbleBitSetup.Tests
         {
             var setup = new PoupardSternSetup(ps, k);
             // PoupardStern Protocol
-            var keyPair = new RsaKey(Exp, keySize);
+            var keyPair = Utils.GeneratePrivate(Exp, keySize);
 
             sw.Restart(); //Proving start
-            var outputTuple = keyPair.CreatePoupardSternProof(setup);
+            var outputTuple = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePoupardStern(setup);
             sw.Stop();  //Proving ends
 
             ProvingTime = sw.Elapsed.TotalSeconds;
 
             sw.Restart(); //Verifying start
-            keyPair.PublicKey.VerifyPoupardSternProof(outputTuple, setup);
+            ((RsaKeyParameters)keyPair.Public).VerifyPoupardStern(outputTuple, setup);
             sw.Stop();  //Verifying stops
 
             VerifyingTime = sw.Elapsed.TotalSeconds;
@@ -131,12 +132,12 @@ namespace TumbleBitSetup.Tests
         }
         public void _CheckAlphaN(BigInteger Exp, int keySize, int alpha, out double alphaTime)
         {
-            var keyPair = new RsaKey(Exp, keySize);
+            var keyPair = Utils.GeneratePrivate(Exp, keySize);
 
-            var privKey = keyPair._privKey;
-            var pubKey = new RsaPubKey(keyPair);
+            var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
+            var pubKey = (RsaKeyParameters)keyPair.Public;
 
-            var Modulus = pubKey._pubKey.Modulus;
+            var Modulus = pubKey.Modulus;
 
             sw.Restart(); //Check AlphaN start
             PermutationTest.CheckAlphaN(alpha, Modulus);

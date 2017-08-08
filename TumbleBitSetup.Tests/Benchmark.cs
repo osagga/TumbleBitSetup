@@ -12,16 +12,15 @@ namespace TumbleBitSetup.Tests
     {
         public byte[] ps = Strings.ToByteArray("public string");
         public double iterations = 100.0;
+        public int[] alphaList = new int[13] { 41, 43, 991, 1723, 1777, 3391, 3581, 7649, 8663, 20663, 30137, 71471, 352831 };
+        public int[] keySizeList = new int[3] { 512, 1024, 2048 };
+        public int[] kList = new int[3] { 80, 120, 128 };
         public BigInteger Exp = BigInteger.ValueOf(65537);
         public Stopwatch sw = new Stopwatch();
 
         [TestMethod()]
         public void BenchmarkPermutationTest()
         {
-            //var alphaList = new int[6] { 41, 997, 4999, 7649, 20663, 33469 };
-            //var keySizeList = new int[3] { 512, 1024, 2048};
-            var alphaList = new int[12] { 43, 991, 1723, 1777, 3391, 3581, 7649, 8663, 20663, 30137, 71471, 352831 }; //Spredsheet values
-            var keySizeList = new int[1] { 2048 }; //Spredsheet values
             Console.WriteLine("PermutationTest Protocol, alpha, keyLength, ProvingTime, VerifyingTime");
 
             foreach (int alpha in alphaList)
@@ -41,11 +40,11 @@ namespace TumbleBitSetup.Tests
                 }
             }
         }
+
         [TestMethod()]
         public void BenchmarkPoupardStern()
         {
-            var kList = new int[3] { 128, 80, 120 };
-            var keySizeList = new int[3] { 768, 1024, 2048 };
+            keySizeList = new int[3] { 768, 1024, 2048 };
             Console.WriteLine("PoupardStern Protocol, keyLength, k, ProvingTime, VerifyingTime");
 
 
@@ -70,12 +69,6 @@ namespace TumbleBitSetup.Tests
         [TestMethod()]
         public void BenchmarkCheckAlphaN()
         {
-            //var alphaList = new int[6] { 41, 997, 4999, 7649, 20663, 33469 };
-            //var keySizeList = new int[3] {512, 1024, 2048};
-
-            var alphaList = new int[12] { 43, 991, 1723, 1777, 3391, 3581, 7649, 8663, 20663, 30137, 71471, 352831 }; //Spredsheet values
-            var keySizeList = new int[1] { 2048 }; //Spredsheet values
-
             Console.WriteLine("checkAlphaN , alpha, keyLength, Check Time");
 
             foreach (int alpha in alphaList)
@@ -111,9 +104,10 @@ namespace TumbleBitSetup.Tests
 
             VerifyingTime = sw.Elapsed.TotalSeconds;
         }
+
         public void _ProvingAndVerifyingTest2(BigInteger Exp, int keySize, int k, out double ProvingTime, out double VerifyingTime)
         {
-            var setup = new PoupardSternSetup(ps, k);
+            var setup = new PoupardSternSetup(ps, keySize, k);
             // PoupardStern Protocol
             var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
 
@@ -130,6 +124,7 @@ namespace TumbleBitSetup.Tests
             VerifyingTime = sw.Elapsed.TotalSeconds;
 
         }
+
         public void _CheckAlphaN(BigInteger Exp, int keySize, int alpha, out double alphaTime)
         {
             var keyPair = TestUtils.GeneratePrivate(Exp, keySize);

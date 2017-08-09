@@ -240,7 +240,6 @@ namespace TumbleBitSetup
             var keyBytes = pubKey.ToBytes();
 
             // Computing ExLen
-            // TODO: Do we assume keyLength is a multiple of 8? or should I force it (by rounding up)?
             var ExLen = Utils.GetByteLength(keyLength);
 
             // Encoding the x Values

@@ -42,11 +42,14 @@ namespace TumbleBitSetup.Tests
             {
                 p = new BigInteger(bitSize, random);
 
-                // Same certainty parameter as TumbleBit
-                if (!(p.IsProbablePrime(2) == isPrime))
+                if (!(p.IsProbablePrime(100) == isPrime))
                     continue;
 
-                if (p.Mod(BigInteger.ValueOf(2)).Equals(BigInteger.ValueOf(Convert.ToInt32(isOdd))))
+                var pBytes = p.ToByteArrayUnsigned();
+                // Mask the last byte with 11111110, if we get all ones (0xff=255), then the number is even. Odd otherwise.
+                var lastByte = pBytes[pBytes.Length - 1] | (byte)0xfe;
+
+                if ((lastByte.Equals(255)).Equals(isOdd))
                     break;
             }
             return p;
@@ -64,14 +67,10 @@ namespace TumbleBitSetup.Tests
         {
             SecureRandom random = new SecureRandom();
             BigInteger One = BigInteger.One;
-            // From BouncyCastle
-            int mindiffbits = strength / 3;
-            // From TumbleBit, See A.15.2 IEEE P1363 v2 D1 for certainty parameter
-            int certainty = 2;
             BigInteger q, n;
             for (;;)
             {
-                q = new BigInteger(qbitlength, certainty, random);
+                q = new BigInteger(qbitlength, 100, random);
 
                 if (q.Mod(e).Equals(One))
                     continue;

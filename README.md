@@ -1,5 +1,4 @@
 # TumbleBitSetup
-TumbleBit Setup
 
 [TumbleBit](http://cs-people.bu.edu/heilman/tumblebit/) is a unidirectional unlinkable payment hub that allows parties to make fast, anonymous, off-blockchain payments through an untrusted intermediary called the Tumbler. This repository implements an important aspect of the TumbleBit setup protocol. 
 

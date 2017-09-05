@@ -186,12 +186,12 @@ namespace TumbleBitSetup.Tests
     public class PermutationTestProtocolTests
     {
         public int iterValid = 1; // Number of iterations for a valid test
-        public int iterInValid = 1; // Number of iterations for an invalid test
+        public int iterInValid = 2; // Number of iterations for an invalid test
 
         BigInteger Exp = BigInteger.Three;
-        PermutationTestSetup setup = new PermutationTestSetup(Strings.ToByteArray("public string"), 41, 2048);
-        byte[] ps = Strings.ToByteArray("public string");
-        int alpha = 41;
+        public static int alpha = 41;
+        public static byte[] ps = Strings.ToByteArray("public string");
+        PermutationTestSetup setup = new PermutationTestSetup(ps, alpha, 2048);
 
         // unit tests for sub-functions
         [TestMethod()]
@@ -255,7 +255,8 @@ namespace TumbleBitSetup.Tests
 
             var Modulus = pubKey.Modulus;
 
-            var ModBytes = Modulus.ToByteArray();
+            var ModBytes = Modulus.ToByteArrayUnsigned();
+
             // Make the LSB a zero to make it even.
             ModBytes[ModBytes.Length - 1] &= (byte)0xfe;
 
@@ -409,6 +410,9 @@ namespace TumbleBitSetup.Tests
         public bool _EvenE(BigInteger Exp, int keySize)
         {
             /*
+             * !!DOESN'T WORK!!
+             * TODO: Figure out how to use e=6 with the privateKey to generate signatures.
+             * 
              * Let the RSA key be such that e=6.  Verification should fail.
              * This test generates an RSA key with e = Exp then passes (N, 6)
              * as the publicKey to the verifier function.
@@ -417,59 +421,29 @@ namespace TumbleBitSetup.Tests
             // Generating a "normal" RSA key
             var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
             var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
-            Exp = BigInteger.ValueOf(6);
-            // Modifying the publicKey to be (N, 6) instead of (N, Exp).
-            var pubKey = new RsaKeyParameters(false, privKey.Modulus, Exp);
+
+            // Using e=6 for the privateKey doesn't work for now.
+            //var privKeyPrime = (RsaPrivateCrtKeyParameters)Utils.GeneratePrivate(privKey.P, privKey.Q, BigInteger.ValueOf(6)).Private;
+
+            // Modifying the publicKey to be (N, e=6) instead of (N, e=Exp).
+            var pubKey = new RsaKeyParameters(false, privKey.Modulus, BigInteger.ValueOf(6));
 
             // Using the "normal" key to make signatures
-            var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
+            var signature = privKey.ProvePermutationTest(setup);
             // Passing the modified publicKey to verify.
             return pubKey.VerifyPermutationTest(signature, setup);
-        }
-
-        //[TestMethod()]
-        public void Test3A()
-        {
-            for (int i = 0; i < iterInValid; i++)
-                Assert.IsFalse(_Test3A(Exp, 2048));
-        }
-        public bool _Test3A(BigInteger Exp, int keySize)
-        {
-            /* Test 3A
-             * Let p and q both be even numbers such that N is “sufficiently long”
-             */
-
-            BigInteger p, q;
-
-            // Same construction as in BouncyCastle
-            int pbitlength = (keySize + 1) / 2;
-            int qbitlength = (keySize - pbitlength);
-
-            for (;;)
-            {
-                p = TestUtils.GenRandomInt(pbitlength, false);
-                q = TestUtils.GenRandomInt(qbitlength, false);
-                BigInteger N = p.Multiply(q);
-                if (!(N.BitLength == keySize))
-                    break;
-            }
-            // This doesn't work for now because of the check in ModInverse for Q_inv
-            var keyPair = Utils.GeneratePrivate(p, q, Exp);
-
-            var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
-
-            return ((RsaKeyParameters)keyPair.Public).VerifyPermutationTest(signature, setup);
         }
 
         //[TestMethod()]
         public void Test3B()
         {
             for (int i = 0; i < iterInValid; i++)
-                Assert.IsFalse(_Test3B(Exp, 2048));
+                Assert.IsFalse(_Test3B(Exp, 128));
         }
         public bool _Test3B(BigInteger Exp, int keySize)
         {
             /*
+             * !!DOESN'T WORK, NEEDS FIXIG!!
              * Test 3B
              * Let p be some non-even number that is not prime. q can be a normal good prime
              * such that N is “sufficiently long”.
@@ -478,9 +452,9 @@ namespace TumbleBitSetup.Tests
             BigInteger p, q;
 
             int pbitlength = (keySize + 1) / 2;
-            int qbitlength = (keySize - pbitlength);
-
             p = TestUtils.GenRandomInt(pbitlength, true, false);
+
+            int qbitlength = (keySize - p.BitLength);
             q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
 
             // This doesn't work for now because of the check in ModInverse for Q_inv
@@ -500,6 +474,7 @@ namespace TumbleBitSetup.Tests
         public bool _Test3C(BigInteger Exp, int keySize)
         {
             /*
+             * !!DOESN'T WORK, NEEDS FIXIG!!
              * Test 3C
              * Let p=3 and q=some prime number such that N is “sufficiently long”
             */
@@ -530,6 +505,7 @@ namespace TumbleBitSetup.Tests
         public bool _Test3D(BigInteger Exp, int keySize)
         {
             /*
+             * !!DOESN'T WORK, NEEDS FIXIG!!
              * Test 3D
              * Let p be the prime that comes immediately before alpha and q is some good prime
              * such that the modulus N=PxQ is still a "sufficiently long"
@@ -564,6 +540,7 @@ namespace TumbleBitSetup.Tests
         public bool _Test3E(BigInteger Exp, int keySize)
         {
             /*
+             * !!DOESN'T WORK, NEEDS FIXIG!!
              * Test 3E
              * Let p be alpha and q is some good prime such that
              * the modulus N=pq is still a "sufficiently long" 

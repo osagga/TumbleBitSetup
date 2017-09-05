@@ -1,7 +1,6 @@
 # TumbleBitSetup
-TumbleBit Setup
 
-TumbleBit is a unidirectional unlinkable payment hub that allows parties to make fast, anonymous, off-blockchain payments through an untrusted intermediary called the Tumbler. This repository implements an important aspect of the TumbleBit setup protocol. 
+[TumbleBit](http://cs-people.bu.edu/heilman/tumblebit/) is a unidirectional unlinkable payment hub that allows parties to make fast, anonymous, off-blockchain payments through an untrusted intermediary called the Tumbler. This repository implements an important aspect of the TumbleBit setup protocol. 
 
 The security of the TumbleBit protocol rests on the assumption that the Tumbler's RSA public key (N, e) defines a permutation over Z_N. In the absence of this assumption, the Tumbler can steal bitcoins. At the same time, the cryptographic proofs of security for the TumbleBit protocol (which are in the real/ideal paradigm) rest on the assumption that payers and payees (Alice and Bob) verify a publicly-verifiable zero-knowledge proof of knowledge that the Tumbler knows the secret key corresponding to his RSA public key.
 

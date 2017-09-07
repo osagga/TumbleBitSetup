@@ -42,10 +42,6 @@ namespace TumbleBitSetup
             // if N >= 2^{KeySize}
             if (Modulus.CompareTo(upperLimit) >= 0)
                 throw new ArgumentOutOfRangeException("RSA modulus larger than expected");
-            
-            // if even
-            if ((Modulus.IntValue & 1) == 0) // TODO: verify that this test does what is expected (I took it from BC)
-                throw new ArgumentException("RSA modulus is even");
 
             // Verify alpha and N
             if (!CheckAlphaN(alpha, Modulus))
@@ -118,10 +114,6 @@ namespace TumbleBitSetup
 
             // if N >= 2^{KeySize}
             if (Modulus.CompareTo(upperLimit) >= 0)
-                return false;
-
-            // if even
-            if ((Modulus.IntValue & 1) == 0) // TODO: verify that this test does what is expected (I took it from BC)
                 return false;
 
             // Generate m1 and m2

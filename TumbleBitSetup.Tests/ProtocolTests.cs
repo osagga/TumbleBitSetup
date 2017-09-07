@@ -1,4 +1,5 @@
 ﻿using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Crypto;
 using System;
 using System.Linq;
 using Org.BouncyCastle.Utilities;
@@ -185,13 +186,14 @@ namespace TumbleBitSetup.Tests
     [TestClass()]
     public class PermutationTestProtocolTests
     {
+        private static int keySize = 2048;
         public int iterValid = 1; // Number of iterations for a valid test
         public int iterInValid = 2; // Number of iterations for an invalid test
 
         BigInteger Exp = BigInteger.Three;
         public static int alpha = 41;
         public static byte[] ps = Strings.ToByteArray("public string");
-        PermutationTestSetup setup = new PermutationTestSetup(ps, alpha, 2048);
+        PermutationTestSetup setup = new PermutationTestSetup(ps, alpha, keySize);
 
         // unit tests for sub-functions
         [TestMethod()]
@@ -327,13 +329,26 @@ namespace TumbleBitSetup.Tests
         public bool _ProvingAndVerifyingTest(BigInteger Exp, int keySize, int alpha, int k)
         {
             // Sanity check
-            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
+            PermutationTestProof signature;
+            AsymmetricCipherKeyPair keyPair;
             var setup2 = setup.Clone();
             setup2.KeySize = keySize;
             setup2.SecurityParameter = k;
             setup2.Alpha = alpha;
+            while (true)
+            {
+                try
+                {
+                    keyPair = TestUtils.GeneratePrivate(Exp, keySize);
+                    signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup2);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                break;
+            }
 
-            var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup2);
             return ((RsaKeyParameters)keyPair.Public).VerifyPermutationTest(signature, setup2);
         }
 
@@ -341,19 +356,32 @@ namespace TumbleBitSetup.Tests
         public void DifferentNTest()
         {
             for (int i = 0; i < iterInValid; i++)
-                Assert.IsFalse(_DifferentNTest(Exp, 2048, setup.Alpha));
+                Assert.IsFalse(_DifferentNTest(Exp, keySize, setup.Alpha));
 
         }
         public bool _DifferentNTest(BigInteger Exp, int keySize, int alpha)
         {
             // Modulus that is different than the one the verifier uses
 
+            PermutationTestProof signature;
             // The key pair used in Proving
-            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
+            AsymmetricCipherKeyPair keyPair;
+
             // A different key pair to be used in verifying (assuming that we would less likely get the same P and Q twice).
             var diffKey = TestUtils.GeneratePrivate(Exp, keySize);
-
-            var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
+            while (true)
+            {
+                try
+                {
+                    keyPair = TestUtils.GeneratePrivate(Exp, keySize);
+                    signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                break;
+            }
             return ((RsaKeyParameters)diffKey.Public).VerifyPermutationTest(signature, setup);
         }
 
@@ -361,20 +389,32 @@ namespace TumbleBitSetup.Tests
         public void DifferentETest()
         {
             for (int i = 0; i < iterInValid; i++)
-                Assert.IsFalse(_DifferentETest(2048));
+                Assert.IsFalse(_DifferentETest(keySize));
         }
         public bool _DifferentETest(int keySize)
         {
             // Different "e" than the verifier uses.
 
+            PermutationTestProof signature;
             // The key pair used in Proving
-            var keyPair = TestUtils.GeneratePrivate(BigInteger.Three, keySize);
-            var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
+            AsymmetricCipherKeyPair keyPair;
 
+            while (true)
+            {
+                try
+                {
+                    keyPair = TestUtils.GeneratePrivate(BigInteger.Three, keySize);
+                    signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                break;
+            }
+            var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
             // A different key pair to be used in verifying.
             var diffKey = Utils.GeneratePrivate(privKey.P, privKey.Q, new BigInteger("65537"));
-
-            var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
             return ((RsaKeyParameters)diffKey.Public).VerifyPermutationTest(signature, setup);
         }
 
@@ -383,21 +423,34 @@ namespace TumbleBitSetup.Tests
         {
             for (int i = 0; i < iterInValid; i++)
             {
-                Assert.IsFalse(_ShortN(Exp, 1024, 2048));
-                Assert.IsFalse(_ShortN(Exp, 500, 2048));
+                Assert.IsFalse(_ShortN(Exp, 1024, keySize));
+                Assert.IsFalse(_ShortN(Exp, 500, keySize));
             }
 
         }
         public bool _ShortN(BigInteger Exp, int shortKeySize, int longKeySize)
         {
             // A case where "shortKeySize"-bits N is used for proving and "longKeySize"-bits is needed for verifying.
-            var keyPair = TestUtils.GeneratePrivate(Exp, shortKeySize);
+            PermutationTestProof signature;
+            AsymmetricCipherKeyPair keyPair;
 
-            var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
-            // passing "longKeySize" as the keySize.
+            while (true)
+            {
+                try
+                {
+                    keyPair = TestUtils.GeneratePrivate(Exp, shortKeySize);
+                    signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                break;
+            }
 
             var setup2 = setup.Clone();
             setup2.KeySize = longKeySize;
+            // passing "longKeySize" as the keySize.
             return ((RsaKeyParameters)keyPair.Public).VerifyPermutationTest(signature, setup2);
         }
 
@@ -405,7 +458,7 @@ namespace TumbleBitSetup.Tests
         public void EvenE()
         {
             for (int i = 0; i < iterInValid; i++)
-                Assert.IsFalse(_EvenE(Exp, 2048));
+                Assert.IsFalse(_EvenE(Exp, keySize));
         }
         public bool _EvenE(BigInteger Exp, int keySize)
         {
@@ -419,7 +472,22 @@ namespace TumbleBitSetup.Tests
              * 
             */
             // Generating a "normal" RSA key
-            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
+            PermutationTestProof signature;
+            AsymmetricCipherKeyPair keyPair;
+
+            while (true)
+            {
+                try
+                {
+                    keyPair = TestUtils.GeneratePrivate(Exp, keySize);
+                    signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                break;
+            }
             var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
 
             // Using e=6 for the privateKey doesn't work for now.
@@ -429,7 +497,6 @@ namespace TumbleBitSetup.Tests
             var pubKey = new RsaKeyParameters(false, privKey.Modulus, BigInteger.ValueOf(6));
 
             // Using the "normal" key to make signatures
-            var signature = privKey.ProvePermutationTest(setup);
             // Passing the modified publicKey to verify.
             return pubKey.VerifyPermutationTest(signature, setup);
         }
@@ -437,127 +504,90 @@ namespace TumbleBitSetup.Tests
         //[TestMethod()]
         public void Test3B()
         {
-            for (int i = 0; i < iterInValid; i++)
-                Assert.IsFalse(_Test3B(Exp, 128));
-        }
-        public bool _Test3B(BigInteger Exp, int keySize)
-        {
-            /*
+           /*
              * !!DOESN'T WORK, NEEDS FIXIG!!
              * Test 3B
              * Let p be some non-even number that is not prime. q can be a normal good prime
              * such that N is “sufficiently long”.
             */
-
-            BigInteger p, q;
-
-            int pbitlength = (keySize + 1) / 2;
-            p = TestUtils.GenRandomInt(pbitlength, true, false);
-
-            int qbitlength = (keySize - p.BitLength);
-            q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
-
-            // This doesn't work for now because of the check in ModInverse for Q_inv
-            var keyPair = Utils.GeneratePrivate(p, q, Exp);
-
-            var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
-
-            return ((RsaKeyParameters)keyPair.Public).VerifyPermutationTest(signature, setup);
+            for (int i = 0; i < iterInValid; i++)
+            {
+                int pBitLength = (keySize + 1) / 2;
+                var p = TestUtils.GenRandomInt(pBitLength, true, false);
+                Assert.IsFalse(_Test3X(p, Exp, keySize));
+            }
+                
         }
 
         //[TestMethod()]
         public void Test3C()
         {
-            for (int i = 0; i < iterInValid; i++)
-                Assert.IsFalse(_Test3C(Exp, 2048));
-        }
-        public bool _Test3C(BigInteger Exp, int keySize)
-        {
-            /*
+           /*
              * !!DOESN'T WORK, NEEDS FIXIG!!
              * Test 3C
              * Let p=3 and q=some prime number such that N is “sufficiently long”
             */
-
-            BigInteger p, q;
-
-            p = BigInteger.Three;
-
-            // Same construction as in BouncyCastle
-            int pbitlength = p.BitLength;
-            int qbitlength = (keySize - pbitlength);
-
-            q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
-
-            var keyPair = Utils.GeneratePrivate(p, q, Exp);
-
-            var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
-
-            return ((RsaKeyParameters)keyPair.Public).VerifyPermutationTest(signature, setup);
+            var p = BigInteger.Three;
+            for (int i = 0; i < iterInValid; i++)
+                Assert.IsFalse(_Test3X(p, Exp, keySize));
         }
-
+        
         //[TestMethod()]
         public void Test3D()
         {
-            for (int i = 0; i < iterInValid; i++)
-                Assert.IsFalse(_Test3D(Exp, 2048));
-        }
-        public bool _Test3D(BigInteger Exp, int keySize)
-        {
-            /*
-             * !!DOESN'T WORK, NEEDS FIXIG!!
-             * Test 3D
-             * Let p be the prime that comes immediately before alpha and q is some good prime
-             * such that the modulus N=PxQ is still a "sufficiently long"
+           /*
+               * !!DOESN'T WORK, NEEDS FIXIG!!
+               * Test 3D
+               * Let p be the prime that comes immediately before alpha and q is some good prime
+               * such that the modulus N=PxQ is still a "sufficiently long"
             */
-
-            BigInteger p, q;
-
             // prime that comes immediately before alpha
             var primeN = Utils.Primes(alpha - 1).Last();
-
-            p = BigInteger.ValueOf(primeN);
-
-            // Same construction as in BouncyCastle
-            int pbitlength = p.BitLength;
-            int qbitlength = (keySize - pbitlength);
-
-            q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
-
-            var keyPair = Utils.GeneratePrivate(p, q, Exp);
-
-            var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
-
-            return ((RsaKeyParameters)keyPair.Public).VerifyPermutationTest(signature, setup);
+            var p = BigInteger.ValueOf(primeN);
+            for (int i = 0; i < iterInValid; i++)
+                Assert.IsFalse(_Test3X(p ,Exp, keySize));
         }
-
+       
         //[TestMethod()]
         public void Test3E()
         {
-            for (int i = 0; i < iterValid; i++)
-                Assert.IsTrue(_Test3E(Exp, 2048));
-        }
-        public bool _Test3E(BigInteger Exp, int keySize)
-        {
             /*
-             * !!DOESN'T WORK, NEEDS FIXIG!!
-             * Test 3E
-             * Let p be alpha and q is some good prime such that
-             * the modulus N=pq is still a "sufficiently long" 
-             * 
+                * !!DOESN'T WORK, NEEDS FIXIG!!
+                * Test 3E
+                * Let p be alpha and q is some good prime such that
+                * the modulus N=pq is still a "sufficiently long" 
             */
+            var p = BigInteger.ValueOf(alpha);
+            for (int i = 0; i < iterValid; i++)
+                Assert.IsTrue(_Test3X(p, Exp, keySize));
+        }
 
-            BigInteger p, q;
+        public bool _Test3X(BigInteger p, BigInteger Exp, int keySize)
+        {
+            BigInteger q;
+            PermutationTestProof signature;
+            AsymmetricCipherKeyPair keyPair;
 
-            p = BigInteger.ValueOf(alpha);
+            int pBitLength = p.BitLength;
+            int qBitLength = (keySize - pBitLength);
 
-            int pbitlength = p.BitLength;
-            int qbitlength = (keySize - pbitlength);
+            while (true)
+            {
+                try
+                {
+                    q = TestUtils.GenQ(p, qBitLength, keySize, Exp);
 
-            q = TestUtils.GenQ(p, qbitlength, keySize, Exp);
+                    // This doesn't work for now because of the check in ModInverse when calculating Q_inv
+                    keyPair = Utils.GeneratePrivate(p, q, Exp);
 
-            var keyPair = Utils.GeneratePrivate(p, q, Exp);
-            var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
+                    signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                break;
+            }
 
             return ((RsaKeyParameters)keyPair.Public).VerifyPermutationTest(signature, setup);
         }
@@ -637,7 +667,6 @@ namespace TumbleBitSetup.Tests
         // unit tests for main functions
 
         [TestMethod()]
-        [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void ProvingAndVerifyingTest()
         {
             var kList = new int[3] { 128, 80, 120 };
@@ -650,48 +679,114 @@ namespace TumbleBitSetup.Tests
                         Assert.IsTrue(_ProvingAndVerifyingTest(Exp, keySize, k));
 
             Assert.IsTrue(_ProvingAndVerifyingTest(Exp, 1001, 128)); // weird length keySize
-            Assert.IsFalse(_ProvingAndVerifyingTest(Exp, 245, 128)); // throws an exception
-
         }
         public bool _ProvingAndVerifyingTest(BigInteger Exp, int keySize, int k)
         {
+            // Sanity check
+
+            PoupardSternProof outputTuple;
+            AsymmetricCipherKeyPair keyPair;
+
             var setup2 = setup.Clone();
             setup2.SecurityParameter = k;
             setup2.KeySize = keySize;
-            // Sanity check
-            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
-            // Proving
-            var outputTuple = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePoupardStern(setup2);
+
+            while (true)
+            {
+                try
+                {
+                    keyPair = TestUtils.GeneratePrivate(Exp, keySize);
+                    // Proving
+                    outputTuple = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePoupardStern(setup2);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                break;
+            }
+
             // Verifying
             return ((RsaKeyParameters)keyPair.Public).VerifyPoupardStern(outputTuple, setup2);
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void ShortN()
         {
             for (int i = 0; i < iterInValid; i++)
-            {
                 Assert.IsFalse(_ShortN(Exp, 1024, 2048, 128));//returns False in verification.
-                Assert.IsFalse(_ShortN(Exp, 500, 2048, 128)); //Throws an exception in proving()
-            }
 
         }
         public bool _ShortN(BigInteger Exp, int shortKeySize, int longKeySize, int k)
         {
+            PoupardSternProof outputTuple;
+            AsymmetricCipherKeyPair keyPair;
+
             var setup2 = setup.Clone();
             setup2.SecurityParameter = k;
             setup2.KeySize = shortKeySize;
-            // A case where "shortKeySize"-bits N is used for proving and "longKeySize"-bits is needed for verifying.
-            var keyPair = TestUtils.GeneratePrivate(Exp, shortKeySize);
 
-            // Proving
-            var outputTuple = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePoupardStern(setup2);
+            while (true)
+            {
+                try
+                {
+                    // A case where "shortKeySize"-bits N is used for proving and "longKeySize"-bits is needed for verifying.
+                    keyPair = TestUtils.GeneratePrivate(Exp, shortKeySize);
+                    // Proving
+                    outputTuple = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePoupardStern(setup2);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                break;
+            }
 
             setup2.KeySize = longKeySize;
             // Verifying
             return ((RsaKeyParameters)keyPair.Public).VerifyPoupardStern(outputTuple, setup2);
         }
+
+        [TestMethod()]
+        public void SmallN()
+        {
+            // Small keysize for N
+            for (int i = 0; i < iterInValid; i++)
+                _SmallN(Exp, 500, 128); // Throws an exception in proving()
+        }
+        public void _SmallN(BigInteger Exp, int keySize, int k)
+        {
+            // Sanity check
+
+            PoupardSternProof outputTuple;
+            AsymmetricCipherKeyPair keyPair;
+
+            var setup2 = setup.Clone();
+            setup2.SecurityParameter = k;
+            setup2.KeySize = keySize;
+
+            while (true)
+            {
+                try
+                {
+                    keyPair = TestUtils.GeneratePrivate(Exp, keySize);
+                    // Proving
+                    outputTuple = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePoupardStern(setup2);
+                    Assert.Fail("An exception should have been thrown");
+                }
+                catch (ArgumentOutOfRangeException ae)
+                {
+                    Assert.AreEqual("Bad RSA modulus N\r\nParameter name: Modulus", ae.Message);
+                    break;
+                }
+                catch(Exception)
+                {
+                    continue;
+                }
+                Assert.Fail();
+            }
+        }
+
     }
 
 

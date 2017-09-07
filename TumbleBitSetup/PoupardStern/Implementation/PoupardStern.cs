@@ -46,7 +46,7 @@ namespace TumbleBitSetup
                 throw new ArgumentOutOfRangeException("RSA modulus larger than expected");
 
             // if even
-            if ((Modulus.IntValue & 1) == 0) // TODO: verify that this test does what is expected (I took it from BC)
+            if ((Modulus.IntValue & 1) == 0)
                 throw new ArgumentException("RSA modulus is even");
 
             // p and q don't produce a modulus N that has the expected bitLength
@@ -64,7 +64,7 @@ namespace TumbleBitSetup
             var p11 = Two.Pow(k);
             var p1 = lowerLimit.Divide(NsubPhi.Multiply(p11));
             if (p1.CompareTo(p11) <= 0)
-                throw new ArgumentOutOfRangeException("Bad RSA modulus N");
+                throw new ArgumentOutOfRangeException(nameof(Modulus), "Bad RSA modulus N");
 
             // Generate K
             GetK(k, out int BigK);
@@ -152,7 +152,7 @@ namespace TumbleBitSetup
             if (Modulus.CompareTo(lowerLimit) < 0)
                 return false;
             // if even
-            if ((Modulus.IntValue & 1) == 0) // TODO: verify that this test does what is expected (I took it from BC)
+            if ((Modulus.IntValue & 1) == 0)
                 return false;
             // if N >= 2^{KeySize}
             if (Modulus.CompareTo(upperLimit) >= 0)

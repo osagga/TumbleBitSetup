@@ -24,11 +24,31 @@ namespace TumbleBitSetup
             BigInteger p = privKey.P;
             BigInteger q = privKey.Q;
             BigInteger e = privKey.PublicExponent;
-            BigInteger N = privKey.Modulus;
+            BigInteger Modulus = privKey.Modulus;
 
-            int alpha = setup.Alpha;
-            byte[] psBytes = setup.PublicString;
-            int k = setup.SecurityParameter;
+            var keyLength = Modulus.BitLength;
+            var alpha = setup.Alpha;
+
+            BigInteger Two = BigInteger.Two;
+            // 2^{|N| - 1}
+            BigInteger lowerLimit = Two.Pow(keyLength - 1);
+            // 2^{|N|}
+            BigInteger upperLimit = Two.Pow(keyLength);
+
+            // if N < 2^{KeySize-1}
+            if (Modulus.CompareTo(lowerLimit) < 0)
+                throw new ArgumentOutOfRangeException("RSA modulus smaller than expected");
+
+            // if N >= 2^{KeySize}
+            if (Modulus.CompareTo(upperLimit) >= 0)
+                throw new ArgumentOutOfRangeException("RSA modulus larger than expected");
+
+            // Verify alpha and N
+            if (!CheckAlphaN(alpha, Modulus))
+                throw new ArgumentException("RSA modulus has a small prime factor");
+
+            var psBytes = setup.PublicString;
+            var k = setup.SecurityParameter;
 
             byte[][] sigs;
 
@@ -36,7 +56,7 @@ namespace TumbleBitSetup
             Get_m1_m2((decimal)alpha, e.IntValue, k, out int m1, out int m2);
 
             // Calculate eN
-            var eN = N.Multiply(e);
+            var eN = Modulus.Multiply(e);
 
             // Generate a pair (pub, sec) of keys with eN as e.
             var keyPrimePair = Utils.GeneratePrivate(p, q, eN);
@@ -45,7 +65,7 @@ namespace TumbleBitSetup
             var pubKey = privKey.ToPublicKey();
 
             // Generate list of rho values
-            GetRhos(m2, psBytes, pubKey, N.BitLength, out byte[][] rhoValues);
+            GetRhos(m2, psBytes, pubKey, keyLength, out byte[][] rhoValues);
 
             // Signing the Rho values
             sigs = new byte[m2][];
@@ -79,14 +99,14 @@ namespace TumbleBitSetup
             byte[] psBytes = setup.PublicString;
             int k = setup.SecurityParameter;
 
+            BigInteger Modulus = pubKey.Modulus;
+            BigInteger Exponent = pubKey.Exponent;
+
             BigInteger Two = BigInteger.Two;
             // 2^{|N| - 1}
             BigInteger lowerLimit = Two.Pow(keyLength - 1);
             // 2^{|N|}
             BigInteger upperLimit = Two.Pow(keyLength);
-
-            BigInteger Modulus = pubKey.Modulus;
-            BigInteger Exponent = pubKey.Exponent;
 
             // if N < 2^{KeySize-1}
             if (Modulus.CompareTo(lowerLimit) < 0)

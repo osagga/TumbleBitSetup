@@ -28,8 +28,6 @@ namespace TumbleBitSetup
             var psBytes = setup.PublicString;
             int keyLength = setup.KeySize;
 
-            BigInteger y;
-
             BigInteger Two = BigInteger.Two;
             // 2^{|N| - 1}
             BigInteger lowerLimit = Two.Pow(keyLength - 1);
@@ -39,20 +37,21 @@ namespace TumbleBitSetup
             // Rounding up k to the closest multiple of 8
             k = Utils.GetByteLength(k) * 8;
 
-            // Extract public key (N, e) from private key.
-            var pubKey = privKey.ToPublicKey();
-
             // Check if N < 2^{|N|-1}
             if (Modulus.CompareTo(lowerLimit) < 0)
-                throw new ArgumentOutOfRangeException("Bad RSA modulus N");
+                throw new ArgumentOutOfRangeException("RSA modulus smaller than expected");
 
             // if N >= 2^{KeySize}
             if (Modulus.CompareTo(upperLimit) >= 0)
-                throw new ArgumentOutOfRangeException("Bad RSA modulus N");
+                throw new ArgumentOutOfRangeException("RSA modulus larger than expected");
+
+            // if even
+            if ((Modulus.IntValue & 1) == 0)
+                throw new ArgumentException("RSA modulus is even");
 
             // p and q don't produce a modulus N that has the expected bitLength
             if (!(Modulus.BitLength.Equals(keyLength)))
-                throw new ArgumentException("Bad RSA P and Q");
+                throw new ArgumentException("RSA P and Q are bad");
 
             // Calculating phi
             BigInteger pSub1 = p.Subtract(BigInteger.One);
@@ -65,16 +64,19 @@ namespace TumbleBitSetup
             var p11 = Two.Pow(k);
             var p1 = lowerLimit.Divide(NsubPhi.Multiply(p11));
             if (p1.CompareTo(p11) <= 0)
-                throw new ArgumentOutOfRangeException("Bad RSA modulus N");
+                throw new ArgumentOutOfRangeException(nameof(Modulus), "Bad RSA modulus N");
 
             // Generate K
             GetK(k, out int BigK);
+
+            // Extract public key (N, e) from private key.
+            var pubKey = privKey.ToPublicKey();
 
             // Initialize and generate list of z values
             BigInteger[] zValues = new BigInteger[BigK];
             for (int i = 0; i < BigK; i++)
                 zValues[i] = SampleFromZnStar(pubKey, psBytes, i, BigK, keyLength);
-
+            BigInteger y;
             for (;;)
             {
                 // Initialize list of x values.
@@ -148,6 +150,9 @@ namespace TumbleBitSetup
                 return false;
             // if N < 2^{KeySize-1}
             if (Modulus.CompareTo(lowerLimit) < 0)
+                return false;
+            // if even
+            if ((Modulus.IntValue & 1) == 0)
                 return false;
             // if N >= 2^{KeySize}
             if (Modulus.CompareTo(upperLimit) >= 0)

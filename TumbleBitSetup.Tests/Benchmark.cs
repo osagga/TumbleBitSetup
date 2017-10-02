@@ -1,9 +1,10 @@
-﻿using Org.BouncyCastle.Math;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using System;
 using System.Diagnostics;
-using Org.BouncyCastle.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Org.BouncyCastle.Crypto.Parameters;
 
 namespace TumbleBitSetup.Tests
 {
@@ -86,6 +87,22 @@ namespace TumbleBitSetup.Tests
             }
         }
 
+        [TestMethod()]
+        public void PrimalityTest()
+        {
+            Console.WriteLine("Primality Test, keySize, Time");
+            foreach (int keySize in keySizeList)
+            {
+                double CheckingTime = 0.0;
+                for (int i = 0; i < iterations; i++)
+                {
+                    _PrimalityTest(keySize, 128, out double subCTime);
+                    CheckingTime += subCTime;
+                }
+                Console.WriteLine($" ,{keySize} ,{CheckingTime / iterations}");
+            }
+        }
+
         public void _ProvingAndVerifyingTest1(BigInteger Exp, int keySize, int alpha, int k, out double ProvingTime, out double VerifyingTime)
         {
             var setup = new PermutationTestSetup(ps, alpha, k);
@@ -141,5 +158,23 @@ namespace TumbleBitSetup.Tests
             alphaTime = sw.Elapsed.TotalSeconds;
         }
 
+        public void _PrimalityTest(int keySize, int certainty, out double CheckingTime)
+        {
+            SecureRandom random = new SecureRandom();
+            BigInteger p;
+            for (;;)
+            {
+                p = new BigInteger(keySize, random);
+
+                if (p.IsProbablePrime(certainty))
+                    break;
+            }
+
+            sw.Restart();
+            var isPrime = p.IsProbablePrime(certainty);
+            sw.Stop();
+            Assert.IsTrue(isPrime);
+            CheckingTime = sw.Elapsed.TotalSeconds;
+        }
     }
 }

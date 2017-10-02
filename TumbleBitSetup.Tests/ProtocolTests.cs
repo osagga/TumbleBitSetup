@@ -79,7 +79,6 @@ namespace TumbleBitSetup.Tests
         [TestMethod()]
         public void MGF1_SHA256_Test()
         {
-            // Doesn't work yet, check with #15
             var data1 = Strings.ToByteArray("TEST42");
             var data2 = Strings.ToByteArray("TEST222");
             var keySize = 856;

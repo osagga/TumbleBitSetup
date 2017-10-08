@@ -292,17 +292,17 @@ namespace TumbleBitSetup.Tests
             var k = 128;
             var Exp = 65537;
             PermutationTest.Get_m1_m2(41, Exp, k, out int m1, out int m2);
-            Assert.IsTrue(m1.Equals(25) && m2.Equals(25));
-            PermutationTest.Get_m1_m2(997, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(24) && m2.Equals(24));
+            PermutationTest.Get_m1_m2(89, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(20) && m2.Equals(20));
+            PermutationTest.Get_m1_m2(191, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(17) && m2.Equals(17));
+            PermutationTest.Get_m1_m2(937, Exp, k, out m1, out m2);
             Assert.IsTrue(m1.Equals(13) && m2.Equals(13));
-            PermutationTest.Get_m1_m2(4999, Exp, k, out m1, out m2);
-            Assert.IsTrue(m1.Equals(11) && m2.Equals(11));
-            PermutationTest.Get_m1_m2(7649, Exp, k, out m1, out m2);
-            Assert.IsTrue(m1.Equals(10) && m2.Equals(11));
-            PermutationTest.Get_m1_m2(20663, Exp, k, out m1, out m2);
-            Assert.IsTrue(m1.Equals(9) && m2.Equals(10));
-            PermutationTest.Get_m1_m2(33469, Exp, k, out m1, out m2);
-            Assert.IsTrue(m1.Equals(9) && m2.Equals(9));
+            PermutationTest.Get_m1_m2(1667, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(12) && m2.Equals(12));
+            PermutationTest.Get_m1_m2(3187, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(11) && m2.Equals(12));
         }
 
         // unit tests for main functions

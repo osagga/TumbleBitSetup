@@ -8,12 +8,13 @@ using System.Diagnostics;
 
 namespace TumbleBitSetup.Tests
 {
-    //[TestClass()]
+    [TestClass()]
     public class Benchmark
     {
         public byte[] ps = Strings.ToByteArray("public string");
-        public double iterations = 100.0;
-        public int[] alphaList = new int[13] { 41, 43, 991, 1723, 1777, 3391, 3581, 7649, 8663, 20663, 30137, 71471, 352831 };
+        public double iterations = 1.0;
+        public int k = 128;
+        public int[] alphaList = new int[13] { 41, 89, 191, 937, 1667, 3187, 3347, 7151, 8009, 19121, 26981, 65537, 319567 };
         public int[] keySizeList = new int[3] { 512, 1024, 2048 };
         public int[] kList = new int[3] { 80, 120, 128 };
         public BigInteger Exp = BigInteger.ValueOf(65537);
@@ -22,23 +23,27 @@ namespace TumbleBitSetup.Tests
         [TestMethod()]
         public void BenchmarkPermutationTest()
         {
-            Console.WriteLine("PermutationTest Protocol, alpha, keyLength, ProvingTime, VerifyingTime");
+            Console.WriteLine($"Parameters,,, {keySizeList[0]}-bit RSA,, {keySizeList[1]}-bit RSA,, {keySizeList[2]}-bit RSA,");
+            Console.WriteLine("alpha, m1, m2, Prove, Verify, Prove, Verify, Prove, Verify");
 
             foreach (int alpha in alphaList)
             {
+                PermutationTest.Get_m1_m2(alpha, Exp.IntValue, k, out int m1, out int m2);
+                Console.Write($"{alpha},{m1},{m2}");
                 foreach (int keySize in keySizeList)
                 {
                     double ProvingTime = 0.0;
                     double VerifyingTime = 0.0;
                     for (int i = 0; i < iterations; i++)
                     {
-                        // Fixing k at 128
-                        _ProvingAndVerifyingTest1(Exp, keySize, alpha, 128, out double subPTime, out double subVTime);
+                        // k is 128
+                        _ProvingAndVerifyingTest1(Exp, keySize, alpha, k, out double subPTime, out double subVTime);
                         ProvingTime += subPTime;
                         VerifyingTime += subVTime;
                     }
-                    Console.WriteLine(" ,{0} ,{1} ,{2} ,{3}", alpha, keySize, ProvingTime / iterations, VerifyingTime / iterations);
+                    Console.Write($",{ProvingTime / iterations} ,{VerifyingTime / iterations}");
                 }
+                Console.WriteLine();
             }
         }
 
@@ -112,14 +117,14 @@ namespace TumbleBitSetup.Tests
             sw.Restart(); //Proving start
             var signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
             sw.Stop();  //Proving ends
-
-            ProvingTime = sw.Elapsed.TotalSeconds;
+            
+            ProvingTime = sw.Elapsed.TotalMilliseconds;
 
             sw.Restart(); //Verifying start
             ((RsaKeyParameters)keyPair.Public).VerifyPermutationTest(signature, setup);
             sw.Stop();  //Verifying stops
 
-            VerifyingTime = sw.Elapsed.TotalSeconds;
+            VerifyingTime = sw.Elapsed.TotalMilliseconds;
         }
 
         public void _ProvingAndVerifyingTest2(BigInteger Exp, int keySize, int k, out double ProvingTime, out double VerifyingTime)

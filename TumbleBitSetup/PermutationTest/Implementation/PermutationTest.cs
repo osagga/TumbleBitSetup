@@ -162,13 +162,11 @@ namespace TumbleBitSetup
         internal static bool CheckAlphaN(int alpha, BigInteger N)
         {
             IEnumerable<int> primesList = Utils.Primes(alpha - 1);
-
+            BigInteger primorial = BigInteger.One;
             foreach (int p in primesList)
-            {
-                if (!(N.Gcd(BigInteger.ValueOf(p)).Equals(BigInteger.One)))
-                    return false;
-            }
-            return true;
+                primorial = primorial.Multiply(BigInteger.ValueOf(p));
+
+            return N.Gcd(primorial).Equals(BigInteger.One);
         }
 
         /// <summary>
@@ -179,9 +177,9 @@ namespace TumbleBitSetup
         /// <param name="k">Security parameter specified in the setup</param>
         internal static void Get_m1_m2(decimal alpha, int e, int k, out int m1, out int m2)
         {
-            double p1 = -(k + 1) / Math.Log(1.0 / ((double)alpha), 2.0);
+            double p1 = -k / Math.Log(1.0 / ((double)alpha), 2.0);
             double p22 = 1.0 / ((double)alpha) + (1.0 / ((double)e)) * (1.0 - (1.0 / ((double)alpha)));
-            double p2 = -(k + 1) / Math.Log(p22, 2.0);
+            double p2 = -k / Math.Log(p22, 2.0);
             m1 = (int)Math.Ceiling(p1);
             m2 = (int)Math.Ceiling(p2);
             return;
@@ -208,7 +206,7 @@ namespace TumbleBitSetup
             {
                 // Byte representation of i
                 var EI = Utils.I2OSP(i, m2Len);
-                int j = 2;
+                int j = 1;
                 // Combine the octet string
                 var combined = Utils.Combine(keyBytes, psBytes, EI);
                 while (true)

@@ -12,7 +12,7 @@ namespace TumbleBitSetup.Tests
     public class Benchmark
     {
         public byte[] ps = Strings.ToByteArray("public string");
-        public double iterations = 100.0;
+        public double iterations = 1.0;
         public int k = 128;
         public int[] alphaList = new int[13] { 41, 89, 191, 937, 1667, 3187, 3347, 7151, 8009, 19121, 26981, 65537, 319567 };
         public int[] keySizeList = new int[3] { 512, 1024, 2048 };
@@ -36,8 +36,7 @@ namespace TumbleBitSetup.Tests
                     double VerifyingTime = 0.0;
                     for (int i = 0; i < iterations; i++)
                     {
-                        // k is 128
-                        _ProvingAndVerifyingTest1(Exp, keySize, alpha, k, out double subPTime, out double subVTime);
+                        _ProvingAndVerifyingTest1(Exp, keySize, alpha, out double subPTime, out double subVTime);
                         ProvingTime += subPTime;
                         VerifyingTime += subVTime;
                     }
@@ -108,9 +107,9 @@ namespace TumbleBitSetup.Tests
             }
         }
 
-        public void _ProvingAndVerifyingTest1(BigInteger Exp, int keySize, int alpha, int k, out double ProvingTime, out double VerifyingTime)
+        public void _ProvingAndVerifyingTest1(BigInteger Exp, int keySize, int alpha, out double ProvingTime, out double VerifyingTime)
         {
-            var setup = new PermutationTestSetup(ps, alpha, k);
+            var setup = new PermutationTestSetup(ps, alpha, keySize);
             // PermutationTest Protocol
             var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
 

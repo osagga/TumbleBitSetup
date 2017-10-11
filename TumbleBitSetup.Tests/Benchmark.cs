@@ -12,7 +12,7 @@ namespace TumbleBitSetup.Tests
     public class Benchmark
     {
         public byte[] ps = Strings.ToByteArray("public string");
-        public double iterations = 1.0;
+        public double iterations = 100.0;
         public int k = 128;
         public int[] alphaList = new int[13] { 41, 89, 191, 937, 1667, 3187, 3347, 7151, 8009, 19121, 26981, 65537, 319567 };
         public int[] keySizeList = new int[3] { 512, 1024, 2048 };
@@ -71,13 +71,15 @@ namespace TumbleBitSetup.Tests
                 }
             }
         }
+
         [TestMethod()]
         public void BenchmarkCheckAlphaN()
         {
-            Console.WriteLine("checkAlphaN , alpha, keyLength, Check Time");
-
+            Console.WriteLine("CheckAlphaN,, key Size,, ");
+            Console.WriteLine($"alpha, {keySizeList[0]}, {keySizeList[1]}, {keySizeList[2]}");
             foreach (int alpha in alphaList)
             {
+                Console.Write($"{alpha}");
                 foreach (int keySize in keySizeList)
                 {
                     double CheckTime = 0.0;
@@ -86,8 +88,9 @@ namespace TumbleBitSetup.Tests
                         _CheckAlphaN(Exp, keySize, alpha, out double subCheckTime);
                         CheckTime += subCheckTime;
                     }
-                    Console.WriteLine(" ,{0} ,{1} ,{2}", alpha, keySize, CheckTime / iterations);
+                    Console.Write($",{CheckTime / iterations}");
                 }
+                Console.WriteLine();
             }
         }
 
@@ -150,16 +153,14 @@ namespace TumbleBitSetup.Tests
         {
             var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
 
-            var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
             var pubKey = (RsaKeyParameters)keyPair.Public;
-
             var Modulus = pubKey.Modulus;
 
             sw.Restart(); //Check AlphaN start
-            PermutationTest.CheckAlphaN(alpha, Modulus);
+            var output = PermutationTest.CheckAlphaN(alpha, Modulus);
             sw.Stop();  //Check AlphaN ends
-
-            alphaTime = sw.Elapsed.TotalSeconds;
+            Assert.IsTrue(output);
+            alphaTime = sw.Elapsed.TotalMilliseconds;
         }
 
         public void _PrimalityTest(int keySize, int certainty, out double CheckingTime)

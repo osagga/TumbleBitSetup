@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using Org.BouncyCastle.Math;
 
 namespace TumbleBitSetup
 {

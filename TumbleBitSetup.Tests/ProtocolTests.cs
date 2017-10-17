@@ -1,10 +1,10 @@
-﻿using Org.BouncyCastle.Math;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 using System;
 using System.Linq;
-using Org.BouncyCastle.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Org.BouncyCastle.Crypto.Parameters;
 
 namespace TumbleBitSetup.Tests
 {

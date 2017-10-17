@@ -43,9 +43,10 @@ namespace TumbleBitSetup
             if (Modulus.CompareTo(upperLimit) >= 0)
                 throw new ArgumentOutOfRangeException("RSA modulus larger than expected");
 
-            // Verify alpha and N
-            if (!CheckAlphaN(alpha, Modulus))
-                throw new ArgumentException("RSA modulus has a small prime factor");
+            // If q divides p-1 when N is odd bit length.
+            if (Modulus.BitLength % 2 == 1)
+                if(!p.Subtract(BigInteger.One).Mod(q).Equals(BigInteger.Zero))
+                    throw new ArgumentException("RSA modulus has a small prime factor");
 
             var psBytes = setup.PublicString;
             var k = setup.SecurityParameter;
@@ -161,28 +162,11 @@ namespace TumbleBitSetup
         /// <returns>true if the check passes, false otherwise</returns>
         internal static bool CheckAlphaN(int alpha, BigInteger N)
         {
-            var Primorial = BigInteger.One;
-
-            if (PermutationTestSetup.alphaPrimorial.ContainsKey(alpha))
-                Primorial = PermutationTestSetup.alphaPrimorial[alpha];
-            else
-                foreach (int p in Utils.Primes(alpha - 1))
-                    Primorial = Primorial.Multiply(BigInteger.ValueOf(p));
-
-            return N.Gcd(Primorial).Equals(BigInteger.One);
-
+            foreach (int p in Utils.Primes(alpha - 1))
+                if (N.Mod(BigInteger.ValueOf(p)).Equals(BigInteger.Zero))
+                    return false;
+            return true;
         }
-        //internal static bool CheckAlphaN(int alpha, BigInteger N)
-        //{
-        //    IEnumerable<int> primesList = Utils.Primes(alpha - 1);
-
-        //    foreach (int p in primesList)
-        //    {
-        //        if (!(N.Gcd(BigInteger.ValueOf(p)).Equals(BigInteger.One)))
-        //            return false;
-        //    }
-        //    return true;
-        //}
 
         /// <summary>
         /// Generate the values m1 and m2 as specified in equation 2 of the setup.

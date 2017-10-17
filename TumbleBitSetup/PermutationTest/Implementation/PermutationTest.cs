@@ -42,11 +42,6 @@ namespace TumbleBitSetup
             if (Modulus.CompareTo(upperLimit) >= 0)
                 throw new ArgumentOutOfRangeException("RSA modulus larger than expected");
 
-            // If q divides p-1 when N is odd bit length.
-            if (Modulus.BitLength % 2 == 1)
-                if(!p.Subtract(BigInteger.One).Mod(q).Equals(BigInteger.Zero))
-                    throw new ArgumentException("RSA modulus has a small prime factor");
-
             var psBytes = setup.PublicString;
             var k = setup.SecurityParameter;
 

@@ -5,6 +5,7 @@ using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace TumbleBitSetup.Tests
 {
@@ -95,6 +96,42 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
+        public void BenchmarkPrimes()
+        {
+            Console.WriteLine("BenchmarkPrimes,,");
+            Console.WriteLine($"alpha, running time ");
+            foreach (int alpha in alphaList)
+            {
+                Console.Write($"{alpha}");
+                double CheckTime = 0.0;
+                for (int i = 0; i < iterations; i++)
+                {
+                    _Primes(alpha, out double subCheckTime);
+                    CheckTime += subCheckTime;
+                }
+                Console.WriteLine($",{CheckTime / iterations}");
+            }
+        }
+
+        [TestMethod()]
+        public void BenchmarkKeyGen()
+        {
+            Console.WriteLine("Benchmark Key Generation,,");
+            Console.WriteLine($"keysize, running time ");
+            foreach (int key in keySizeList)
+            {
+                Console.Write(key);
+                double CheckTime = 0.0;
+                for (int i = 0; i < iterations; i++)
+                {
+                    _keyGen(key, out double subCheckTime);
+                    CheckTime += subCheckTime;
+                }
+                Console.WriteLine($",{CheckTime / iterations}");
+            }
+        }
+
+        [TestMethod()]
         public void PrimalityTest()
         {
             Console.WriteLine("Primality Test, keySize, Time");
@@ -161,6 +198,22 @@ namespace TumbleBitSetup.Tests
             sw.Stop();  //Check AlphaN ends
             Assert.IsTrue(output);
             alphaTime = sw.Elapsed.TotalMilliseconds;
+        }
+
+        public void _Primes(int alpha, out double alphaTime)
+        {
+            sw.Restart(); //timer start
+            var output = Utils.Primes(alpha-1).ToArray();
+            sw.Stop();  //timer stops
+            alphaTime = sw.Elapsed.TotalMilliseconds;
+        }
+
+        public void _keyGen(int keySize, out double Time)
+        {
+            sw.Restart(); //timer start
+            var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
+            sw.Stop();  //timer stops
+            Time = sw.Elapsed.TotalMilliseconds;
         }
 
         public void _PrimalityTest(int keySize, int certainty, out double CheckingTime)

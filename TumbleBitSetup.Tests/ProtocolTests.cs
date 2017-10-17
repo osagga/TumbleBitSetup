@@ -222,6 +222,20 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
+        public void CheckAlphaNTest0()
+        {
+            // Sanity check
+            var keyPair = TestUtils.GeneratePrivate(Exp, setup.KeySize);
+
+            var pubKey = (RsaKeyParameters)keyPair.Public;
+
+            var Modulus = pubKey.Modulus;
+
+            // Assert CheckAlphaN returns True
+            Assert.IsTrue(PermutationTest.CheckAlphaN(alpha, Modulus));
+        }
+
+        [TestMethod()]
         public void CheckAlphaNTest1()
         {
             // CheckAlphaN outputs fail if N has some prime number p < alpha as a factor.

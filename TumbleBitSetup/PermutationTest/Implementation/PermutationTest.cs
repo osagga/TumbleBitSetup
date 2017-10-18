@@ -54,7 +54,7 @@ namespace TumbleBitSetup
             var eN = Modulus.Multiply(e);
 
             // Generate a pair (pub, sec) of keys with eN as e.
-            var keyPrimePair = Utils.GeneratePrivate(p, q, eN);
+            var PrivatekeyPrime = Utils.GeneratePrivate(p, q, eN);
 
             // Extract public key (N, e) from private key.
             var pubKey = privKey.ToPublicKey();
@@ -67,7 +67,7 @@ namespace TumbleBitSetup
             for (int i = 0; i < m2; i++)
             {
                 if (i <= m1)
-                    sigs[i] = ((RsaPrivateCrtKeyParameters)keyPrimePair.Private).Decrypt(rhoValues[i]);
+                    sigs[i] = PrivatekeyPrime.Decrypt(rhoValues[i]);
                 else
                     sigs[i] = privKey.Decrypt(rhoValues[i]);
             }

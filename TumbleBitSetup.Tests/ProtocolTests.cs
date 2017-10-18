@@ -427,8 +427,7 @@ namespace TumbleBitSetup.Tests
             }
             var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
             // A different key pair to be used in verifying.
-            var diffKey = Utils.GeneratePrivate(privKey.P, privKey.Q, new BigInteger("65537"));
-            return ((RsaKeyParameters)diffKey.Public).VerifyPermutationTest(signature, setup);
+            return new RsaKeyParameters(false, privKey.P.Multiply(privKey.Q), new BigInteger("65537")).VerifyPermutationTest(signature, setup);
         }
 
         [TestMethod()]
@@ -579,7 +578,7 @@ namespace TumbleBitSetup.Tests
         {
             BigInteger q;
             PermutationTestProof signature;
-            AsymmetricCipherKeyPair keyPair;
+            RsaPrivateCrtKeyParameters Privatekey;
 
             int pBitLength = p.BitLength;
             int qBitLength = (keySize - pBitLength);
@@ -591,9 +590,9 @@ namespace TumbleBitSetup.Tests
                     q = TestUtils.GenQ(p, qBitLength, keySize, Exp);
 
                     // This doesn't work for now because of the check in ModInverse when calculating Q_inv
-                    keyPair = Utils.GeneratePrivate(p, q, Exp);
+                    Privatekey = Utils.GeneratePrivate(p, q, Exp);
 
-                    signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
+                    signature = Privatekey.ProvePermutationTest(setup);
                 }
                 catch (Exception)
                 {
@@ -601,8 +600,7 @@ namespace TumbleBitSetup.Tests
                 }
                 break;
             }
-
-            return ((RsaKeyParameters)keyPair.Public).VerifyPermutationTest(signature, setup);
+            return new RsaKeyParameters(false, p.Multiply(q), Exp).VerifyPermutationTest(signature, setup);
         }
     }
 

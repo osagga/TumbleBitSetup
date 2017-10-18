@@ -64,7 +64,7 @@ namespace TumbleBitSetup
         /// <param name="q">Q</param>
         /// <param name="e">Public Exponent</param>
         /// <returns>RSA key pair</returns>
-        internal static AsymmetricCipherKeyPair GeneratePrivate(BigInteger p, BigInteger q, BigInteger e)
+        internal static RsaPrivateCrtKeyParameters GeneratePrivate(BigInteger p, BigInteger q, BigInteger e)
         {
             BigInteger n = p.Multiply(q);
 
@@ -89,9 +89,7 @@ namespace TumbleBitSetup
             BigInteger dQ = d.Remainder(qSub1);
             BigInteger qInv = q.ModInverse(p);
 
-            return new AsymmetricCipherKeyPair(
-                new RsaKeyParameters(false, n, e),
-                new RsaPrivateCrtKeyParameters(n, e, d, p, q, dP, dQ, qInv));
+            return new RsaPrivateCrtKeyParameters(n, e, d, p, q, dP, dQ, qInv);
         }
 
         /// <summary>

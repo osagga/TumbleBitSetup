@@ -28,20 +28,6 @@ namespace TumbleBitSetup
             var keyLength = Modulus.BitLength;
             var alpha = setup.Alpha;
 
-            BigInteger Two = BigInteger.Two;
-            // 2^{|N| - 1}
-            BigInteger lowerLimit = Two.Pow(keyLength - 1);
-            // 2^{|N|}
-            BigInteger upperLimit = Two.Pow(keyLength);
-
-            // if N < 2^{KeySize-1}
-            if (Modulus.CompareTo(lowerLimit) < 0)
-                throw new ArgumentOutOfRangeException("RSA modulus smaller than expected");
-
-            // if N >= 2^{KeySize}
-            if (Modulus.CompareTo(upperLimit) >= 0)
-                throw new ArgumentOutOfRangeException("RSA modulus larger than expected");
-
             var psBytes = setup.PublicString;
             var k = setup.SecurityParameter;
 
@@ -97,18 +83,8 @@ namespace TumbleBitSetup
             BigInteger Modulus = pubKey.Modulus;
             BigInteger Exponent = pubKey.Exponent;
 
-            BigInteger Two = BigInteger.Two;
-            // 2^{|N| - 1}
-            BigInteger lowerLimit = Two.Pow(keyLength - 1);
-            // 2^{|N|}
-            BigInteger upperLimit = Two.Pow(keyLength);
-
             // if N < 2^{KeySize-1}
-            if (Modulus.CompareTo(lowerLimit) < 0)
-                return false;
-
-            // if N >= 2^{KeySize}
-            if (Modulus.CompareTo(upperLimit) >= 0)
+            if (Modulus.BitLength != keyLength)
                 return false;
 
             // Generate m1 and m2

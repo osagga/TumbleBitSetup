@@ -160,10 +160,11 @@ namespace TumbleBitSetup.Tests
             ProvingTime = sw.Elapsed.TotalMilliseconds;
 
             sw.Restart(); //Verifying start
-            ((RsaKeyParameters)keyPair.Public).VerifyPermutationTest(signature, setup);
+            var output = ((RsaKeyParameters)keyPair.Public).VerifyPermutationTest(signature, setup);
             sw.Stop();  //Verifying stops
+          
+            Assert.IsTrue(output);
 
-            VerifyingTime = sw.Elapsed.TotalMilliseconds;
         }
 
         public void _ProvingAndVerifyingTest2(BigInteger Exp, int keySize, int k, out double ProvingTime, out double VerifyingTime)
@@ -213,6 +214,23 @@ namespace TumbleBitSetup.Tests
             sw.Restart(); //timer start
             var keyPair = TestUtils.GeneratePrivate(Exp, keySize);
             sw.Stop();  //timer stops
+            Time = sw.Elapsed.TotalMilliseconds;
+        }
+
+        public void _TestReadingHexNum(string hexString, out double Time)
+        {
+            sw.Restart(); //Proving start
+            var N = new BigInteger(hexString, 16);
+            sw.Stop();  //Proving ends
+            Time = sw.Elapsed.TotalMilliseconds;
+        }
+        
+        public void _TestGcdBigInt(BigInteger Exp, int KeySize, BigInteger Primorial, out double Time)
+        {
+            var N = ((RsaKeyParameters)TestUtils.GeneratePrivate(Exp, KeySize).Public).Modulus;
+            sw.Restart(); // start
+            N.Gcd(Primorial);
+            sw.Stop();  // end
             Time = sw.Elapsed.TotalMilliseconds;
         }
 

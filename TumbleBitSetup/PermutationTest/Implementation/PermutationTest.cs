@@ -83,7 +83,7 @@ namespace TumbleBitSetup
             BigInteger Modulus = pubKey.Modulus;
             BigInteger Exponent = pubKey.Exponent;
 
-            // if N < 2^{KeySize-1}
+            // if N < 2^{KeySize-1} or N >= 2^{KeySize}
             if (Modulus.BitLength != keyLength)
                 return false;
 

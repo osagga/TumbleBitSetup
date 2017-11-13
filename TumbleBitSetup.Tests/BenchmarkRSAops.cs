@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace TumbleBitSetup.Tests
 {
-    [TestClass()]
+    //[TestClass()]
     public class Runner
     {
         public static void testKey(int Exp, double iterations, double subIterations)

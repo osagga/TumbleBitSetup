@@ -83,6 +83,11 @@ namespace TumbleBitSetup
             BigInteger Modulus = pubKey.Modulus;
             BigInteger Exponent = pubKey.Exponent;
 
+            // Check if exponent e is prime
+            if (!Array.Exists(PermutationTestSetup.SPECIAL_E_VALUES, element => Exponent.IntValue == element))
+                if (!Exponent.IsProbablePrime(k))
+                    return false;
+
             // if N < 2^{KeySize-1} or N >= 2^{KeySize}
             if (Modulus.BitLength != keyLength)
                 return false;

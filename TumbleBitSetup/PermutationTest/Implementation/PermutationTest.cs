@@ -52,7 +52,7 @@ namespace TumbleBitSetup
             sigs = new byte[m2][];
             for (int i = 0; i < m2; i++)
             {
-                if (i <= m1)
+                if (i < m1)
                     sigs[i] = PrivatekeyPrime.Decrypt(rhoValues[i]);
                 else
                     sigs[i] = privKey.Decrypt(rhoValues[i]);
@@ -108,7 +108,7 @@ namespace TumbleBitSetup
             // Verifying the signatures
             for (int i = 0; i < m2; i++)
             {
-                if (i <= m1)
+                if (i < m1)
                 {
                     var dec_sig = pubKeyPrime.Encrypt(sigs[i]);
                     if (!dec_sig.SequenceEqual(rhoValues[i]))

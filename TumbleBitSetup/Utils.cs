@@ -53,8 +53,14 @@ namespace TumbleBitSetup
         /// <param name="x"></param>
         /// <returns></returns>
         internal static int GetOctetLen(int x)
-        {
-            return (int)Math.Ceiling((1.0 / 8.0) * Math.Log(x+1, 2));
+        { 
+            if (x < 0) throw new ArithmeticException("Can't represent a negative value in Octets");
+            else if (x == 0) return 0;
+            else if (x < 256) return 1;
+            else if (x < 256 * 256) return 2;
+            else if (x < 256 * 256 * 256) return 3;
+            // It cannot be >4 because int in c# is at most 4 bytes.
+            else return 4;
         }
 
         /// <summary>

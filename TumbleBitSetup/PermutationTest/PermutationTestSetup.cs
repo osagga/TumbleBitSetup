@@ -9,14 +9,15 @@ namespace TumbleBitSetup
             
         }
 
+        public static readonly int[] SPECIAL_E_VALUES = new int[] { 3, 5, 17, 257, 65537 };
+
         public PermutationTestSetup(byte[] publicString, int alpha, int keySize, int securityParameter = 128)
         {
-            if(publicString == null)
-                throw new ArgumentNullException(nameof(publicString));
-            if(KeySize < 0)
+            PublicString = publicString ?? throw new ArgumentNullException(nameof(publicString));
+            if (KeySize < 0)
                 throw new ArgumentOutOfRangeException(nameof(keySize));
+
             Alpha = alpha;
-            PublicString = publicString;
             KeySize = keySize;
             SecurityParameter = securityParameter;
         }

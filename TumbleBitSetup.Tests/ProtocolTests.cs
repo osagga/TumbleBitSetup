@@ -1,10 +1,10 @@
-﻿using Org.BouncyCastle.Math;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 using System;
 using System.Linq;
-using Org.BouncyCastle.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Org.BouncyCastle.Crypto.Parameters;
 
 namespace TumbleBitSetup.Tests
 {
@@ -222,6 +222,20 @@ namespace TumbleBitSetup.Tests
         }
 
         [TestMethod()]
+        public void CheckAlphaNTest0()
+        {
+            // Sanity check
+            var keyPair = TestUtils.GeneratePrivate(Exp, setup.KeySize);
+
+            var pubKey = (RsaKeyParameters)keyPair.Public;
+
+            var Modulus = pubKey.Modulus;
+
+            // Assert CheckAlphaN returns True
+            Assert.IsTrue(PermutationTest.CheckAlphaN(alpha, Modulus));
+        }
+
+        [TestMethod()]
         public void CheckAlphaNTest1()
         {
             // CheckAlphaN outputs fail if N has some prime number p < alpha as a factor.
@@ -292,17 +306,17 @@ namespace TumbleBitSetup.Tests
             var k = 128;
             var Exp = 65537;
             PermutationTest.Get_m1_m2(41, Exp, k, out int m1, out int m2);
-            Assert.IsTrue(m1.Equals(25) && m2.Equals(25));
-            PermutationTest.Get_m1_m2(997, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(24) && m2.Equals(24));
+            PermutationTest.Get_m1_m2(89, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(20) && m2.Equals(20));
+            PermutationTest.Get_m1_m2(191, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(17) && m2.Equals(17));
+            PermutationTest.Get_m1_m2(937, Exp, k, out m1, out m2);
             Assert.IsTrue(m1.Equals(13) && m2.Equals(13));
-            PermutationTest.Get_m1_m2(4999, Exp, k, out m1, out m2);
-            Assert.IsTrue(m1.Equals(11) && m2.Equals(11));
-            PermutationTest.Get_m1_m2(7649, Exp, k, out m1, out m2);
-            Assert.IsTrue(m1.Equals(10) && m2.Equals(11));
-            PermutationTest.Get_m1_m2(20663, Exp, k, out m1, out m2);
-            Assert.IsTrue(m1.Equals(9) && m2.Equals(10));
-            PermutationTest.Get_m1_m2(33469, Exp, k, out m1, out m2);
-            Assert.IsTrue(m1.Equals(9) && m2.Equals(9));
+            PermutationTest.Get_m1_m2(1667, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(12) && m2.Equals(12));
+            PermutationTest.Get_m1_m2(3187, Exp, k, out m1, out m2);
+            Assert.IsTrue(m1.Equals(11) && m2.Equals(12));
         }
 
         // unit tests for main functions
@@ -413,8 +427,7 @@ namespace TumbleBitSetup.Tests
             }
             var privKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
             // A different key pair to be used in verifying.
-            var diffKey = Utils.GeneratePrivate(privKey.P, privKey.Q, new BigInteger("65537"));
-            return ((RsaKeyParameters)diffKey.Public).VerifyPermutationTest(signature, setup);
+            return new RsaKeyParameters(false, privKey.P.Multiply(privKey.Q), new BigInteger("65537")).VerifyPermutationTest(signature, setup);
         }
 
         [TestMethod()]
@@ -565,7 +578,7 @@ namespace TumbleBitSetup.Tests
         {
             BigInteger q;
             PermutationTestProof signature;
-            AsymmetricCipherKeyPair keyPair;
+            RsaPrivateCrtKeyParameters Privatekey;
 
             int pBitLength = p.BitLength;
             int qBitLength = (keySize - pBitLength);
@@ -577,9 +590,9 @@ namespace TumbleBitSetup.Tests
                     q = TestUtils.GenQ(p, qBitLength, keySize, Exp);
 
                     // This doesn't work for now because of the check in ModInverse when calculating Q_inv
-                    keyPair = Utils.GeneratePrivate(p, q, Exp);
+                    Privatekey = Utils.GeneratePrivate(p, q, Exp);
 
-                    signature = ((RsaPrivateCrtKeyParameters)keyPair.Private).ProvePermutationTest(setup);
+                    signature = Privatekey.ProvePermutationTest(setup);
                 }
                 catch (Exception)
                 {
@@ -587,8 +600,7 @@ namespace TumbleBitSetup.Tests
                 }
                 break;
             }
-
-            return ((RsaKeyParameters)keyPair.Public).VerifyPermutationTest(signature, setup);
+            return new RsaKeyParameters(false, p.Multiply(q), Exp).VerifyPermutationTest(signature, setup);
         }
     }
 

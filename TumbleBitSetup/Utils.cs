@@ -1,12 +1,12 @@
-﻿using Org.BouncyCastle.Crypto.Parameters;
+﻿using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using Org.BouncyCastle.Crypto;
+using System.Linq;
 
 namespace TumbleBitSetup
 {
@@ -53,8 +53,14 @@ namespace TumbleBitSetup
         /// <param name="x"></param>
         /// <returns></returns>
         internal static int GetOctetLen(int x)
-        {
-            return (int)Math.Ceiling((1.0 / 8.0) * Math.Log(x+1, 2));
+        { 
+            if (x < 0) throw new ArithmeticException("Can't represent a negative value in Octets");
+            else if (x == 0) return 0;
+            else if (x < 256) return 1;
+            else if (x < 256 * 256) return 2;
+            else if (x < 256 * 256 * 256) return 3;
+            // It cannot be >4 because int in c# is at most 4 bytes.
+            else return 4;
         }
 
         /// <summary>
@@ -64,7 +70,7 @@ namespace TumbleBitSetup
         /// <param name="q">Q</param>
         /// <param name="e">Public Exponent</param>
         /// <returns>RSA key pair</returns>
-        internal static AsymmetricCipherKeyPair GeneratePrivate(BigInteger p, BigInteger q, BigInteger e)
+        internal static RsaPrivateCrtKeyParameters GeneratePrivate(BigInteger p, BigInteger q, BigInteger e)
         {
             BigInteger n = p.Multiply(q);
 
@@ -89,9 +95,7 @@ namespace TumbleBitSetup
             BigInteger dQ = d.Remainder(qSub1);
             BigInteger qInv = q.ModInverse(p);
 
-            return new AsymmetricCipherKeyPair(
-                new RsaKeyParameters(false, n, e),
-                new RsaPrivateCrtKeyParameters(n, e, d, p, q, dP, dQ, qInv));
+            return new RsaPrivateCrtKeyParameters(n, e, d, p, q, dP, dQ, qInv);
         }
 
         /// <summary>
